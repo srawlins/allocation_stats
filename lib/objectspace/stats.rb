@@ -51,15 +51,19 @@ class ObjectSpace::Stats
   def new_allocations_from_pwd(*args)
     from_pwd = @new_allocations.select { |allocation| allocation.sourcefile[@pwd] }
     if args.empty?
-      return from_pwd
+      from_pwd
     else
-      from_pwd.group_by do |allocation|
-        args.map do |arg|
-          if arg.to_s[0] == "@"
-            allocation.instance_variable_get(arg)
-          else
-            allocation.object.send(arg)
-          end
+      group_by_multiple(from_pwd, *args)
+    end
+  end
+
+  def group_by_multiple(ary, *args)
+    ary.group_by do |el|
+      args.map do |arg|
+        if arg.to_s[0] == "@"
+          el.instance_variable_get(arg)
+        else
+          el.object.send(arg)
         end
       end
     end
