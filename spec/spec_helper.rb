@@ -1,4 +1,4 @@
-require_relative "../lib/objectspace/stats"
+require_relative "../lib/objspace/stats"
 require "yaml"
 
 if RbConfig::CONFIG["MAJOR"].to_i < 2 || RbConfig::CONFIG["MINOR"].to_i < 1

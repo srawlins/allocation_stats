@@ -96,7 +96,9 @@ describe ObjectSpace::Stats do
       y = YAML.dump(["one string", "two string"]) # lots OF objects not from here
     end
 
-    puts stats.new_allocations_from_pwd(:class).keys.inspect
     stats.new_allocations_from_pwd(:class).keys.size.should == 3
+    stats.new_allocations_from_pwd(:class)[String].size.should == 6
+    stats.new_allocations_from_pwd(:class)[Array].size.should == 3  # one for empty *args in YAML.dump
+    stats.new_allocations_from_pwd(:class)[Range].size.should == 1
   end
 end

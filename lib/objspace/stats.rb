@@ -59,11 +59,12 @@ class ObjectSpace::Stats
 
   def group_by_multiple(ary, *args)
     ary.group_by do |el|
-      args.map do |arg|
-        if arg.to_s[0] == "@"
-          el.instance_variable_get(arg)
-        else
-          el.object.send(arg)
+      if args.size == 1
+        arg = args.first
+        arg.to_s[0] == "@" ? el.instance_variable_get(arg) : el.object.send(arg)
+      else
+        args.map do |arg|
+          arg.to_s[0] == "@" ? el.instance_variable_get(arg) : el.object.send(arg)
         end
       end
     end
