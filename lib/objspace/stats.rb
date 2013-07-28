@@ -1,13 +1,17 @@
 require "objspace"
 require_relative "stats/allocation"
+require_relative "stats/allocations_proxy"
+
+require "rubygems"
 
 class ObjectSpace::Stats
-  attr_accessor :new_allocations
+  Rubylibdir = RbConfig::CONFIG["rubylibdir"]
+  GemDir     = Gem.dir
+  attr_accessor :gc_profiler_report, :new_allocations
 
   def initialize
-    @pwd = Dir.pwd
-
     GC.start
+    GC.disable
 
     @existing_object_ids = {}
 
@@ -30,32 +34,22 @@ class ObjectSpace::Stats
         @new_allocations << Allocation.new(object)
       end
     end
+
+    profile_and_start_gc
   end
 
-  def new_allocations_by(*args)
-    @new_allocations.group_by do |allocation|
-      args.map do |arg|
-        if arg.to_s[0] == "@"
-          allocation.instance_variable_get(arg)
-        else
-          allocation.object.send(arg)
-        end
-      end
-    end
+  def allocations
+    AllocationsProxy.new(@new_allocations)
   end
 
-  def new_allocations_by_file
-    @new_allocations.group_by(&:sourcefile)
+  def profile_and_start_gc
+    GC::Profiler.enable
+    GC.enable
+    GC.start
+    @gc_profiler_report = GC::Profiler.result
+    GC::Profiler.disable
   end
 
-  def new_allocations_from_pwd(*args)
-    from_pwd = @new_allocations.select { |allocation| allocation.sourcefile[@pwd] }
-    if args.empty?
-      from_pwd
-    else
-      group_by_multiple(from_pwd, *args)
-    end
-  end
 
   def group_by_multiple(ary, *args)
     ary.group_by do |el|
@@ -68,14 +62,5 @@ class ObjectSpace::Stats
         end
       end
     end
-  end
-
-  def new_bytes_by(*args)
-    bytes = {}
-    new_allocations_by(*args).each do |key, allocations|
-      bytes[key] = 0
-      allocations.each { |allocation| bytes[key] += allocation.memsize }
-    end
-    bytes
   end
 end
