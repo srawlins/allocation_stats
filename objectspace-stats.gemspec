@@ -3,6 +3,7 @@ Gem::Specification.new do |spec|
   spec.version       = "0.1.0"
   spec.authors       = ["Sam Rawlins"]
   spec.email         = ["sam.rawlins@gmail.com"]
+  spec.license       = "Apache v2"
   spec.summary       = "Tooling for tracing object allocations in Ruby 2.1"
   spec.description   = "Tooling for tracing object allocations in Ruby 2.1"
 
