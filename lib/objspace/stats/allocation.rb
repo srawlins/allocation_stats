@@ -46,6 +46,8 @@ class ObjectSpace::Stats
     def to_json
       {
         "memsize" => @memsize,
+        "class_path" => @class_path,
+        "method_id" => @method_id,
         "file" => @sourcefile,
         "line" => @sourceline,
         "class" => @object.class.name,

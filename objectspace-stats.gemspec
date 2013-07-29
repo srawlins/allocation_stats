@@ -1,5 +1,5 @@
 Gem::Specification.new do |spec|
-  spec.name          = "objspace-stats"
+  spec.name          = "objectspace-stats"
   spec.version       = "0.1.0"
   spec.authors       = ["Sam Rawlins"]
   spec.email         = ["sam.rawlins@gmail.com"]
