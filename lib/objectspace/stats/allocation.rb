@@ -43,6 +43,16 @@ class ObjectSpace::Stats
       end
     end
 
+    # Override Rubygems' Kernel#gem
+    def gem
+      gem_regex = /<GEMDIR>#{File::SEPARATOR}
+        gems#{File::SEPARATOR}
+        (?<gem_name>[^#{File::SEPARATOR}]+)#{File::SEPARATOR}
+      /x
+      match = gem_regex.match(@sourcefile)
+      match && match[:gem_name]
+    end
+
     def to_json
       {
         "memsize" => @memsize,

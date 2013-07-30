@@ -212,4 +212,14 @@ describe ObjectSpace::Stats do
     files = stats.allocations.group_by(:@sourcefile, :class).all.keys.map(&:first)
     files.should include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
+
+  it "should track new objects by gem" do
+    stats = ObjectSpace::Stats.new do
+      j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
+    end
+
+    gems = stats.allocations.group_by(:@gem, :class).all.keys.map(&:first)
+    gems.should include("yajl-ruby-1.1.0")
+    gems.should include(nil)
+  end
 end

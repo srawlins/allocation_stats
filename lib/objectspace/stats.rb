@@ -38,6 +38,10 @@ class ObjectSpace::Stats
     profile_and_start_gc
   end
 
+  def inspect
+    @new_allocations.inspect
+  end
+
   def allocations
     AllocationsProxy.new(@new_allocations)
   end

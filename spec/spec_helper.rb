@@ -1,4 +1,4 @@
-require_relative "../lib/objspace/stats"
+require_relative "../lib/objectspace/stats"
 require "yaml"
 require "yajl"
 
