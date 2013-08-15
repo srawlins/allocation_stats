@@ -1,3 +1,6 @@
+# Copyright 2013 Google Inc. All Rights Reserved.
+# Licensed under the Apache License, Version 2.0, found in the LICENSE file.
+
 Gem::Specification.new do |spec|
   spec.name          = "objectspace-stats"
   spec.version       = "0.1.0"

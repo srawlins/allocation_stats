@@ -1,3 +1,10 @@
+# This file is part of Ruby on Rails (http://rubyonrails.org/) (original
+# location: https://github.com/rails/rails/raw/v4.0.0/activesupport/lib/active_support/core_ext/module/delegation.rb)
+#
+# Ruby on Rails is released under the MIT License (http://www.opensource.org/licenses/MIT).
+#
+# "Ruby on Rails" is a registered trademark of David Heinemeier Hansson.
+
 class Module
   # Provides a +delegate+ class method to easily expose contained objects'
   # public methods as your own.
