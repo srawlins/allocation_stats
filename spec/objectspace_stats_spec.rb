@@ -19,7 +19,7 @@ describe ObjectSpace::Stats do
     existing_array = [1,2,3,4,5]
 
     stats = ObjectSpace::Stats.new do
-      new_hash = {"foo" => "bar", "baz" => "qux"}
+      new_hash = {"foo" => "bar", "baz" => "quux"}
     end
 
     stats.new_allocations.size.should == 7
