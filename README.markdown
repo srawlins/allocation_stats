@@ -29,41 +29,41 @@ At this point, results is a Hash of (sourcefile, class) tuple keys and ObjectSpa
 
 ```ruby
 {
-  ["/usr/local/google/home/srawlins/code/objectspace-stats/spec/spec_helper.rb", String]
+  [".../spec/spec_helper.rb", String]
     =>
   [#<ObjectSpace::Stats::Allocation:0x007f132ac3f160
     @object="a string from spec_helper",
     @memsize=0,
-    @sourcefile="/usr/local/google/home/srawlins/code/objectspace-stats/spec/spec_helper.rb",
+    @sourcefile=".../spec/spec_helper.rb",
     @sourceline=14,
     @class_path="Object",
     @method_id=:allocate_a_string_from_spec_helper>
   ],
 
-  ["/usr/local/google/home/srawlins/code/objectspace-stats/spec/objectspace_stats_spec.rb", Array]
+  [".../spec/objectspace_stats_spec.rb", Array]
     =>
   [#<ObjectSpace::Stats::Allocation:0x007f132ac3e968
     @object=[1, 1, 2, 3, 5, 8, 13, 21, 34, 55],
     @memsize=80,
-    @sourcefile="/usr/local/google/home/srawlins/code/objectspace-stats/spec/objectspace_stats_spec.rb",
+    @sourcefile=".../spec/objectspace_stats_spec.rb",
     @sourceline=78,
     @class_path=nil,
     @method_id=nil>
   ],
 
-  ["/usr/local/google/home/srawlins/code/objectspace-stats/spec/objectspace_stats_spec.rb", String]
+  [".../spec/objectspace_stats_spec.rb", String]
     =>
   [ #<ObjectSpace::Stats::Allocation:0x007f132ac3e0d0
       @object="another string",
       @memsize=0,
-      @sourcefile="/usr/local/google/home/srawlins/code/objectspace-stats/spec/objectspace_stats_spec.rb",
+      @sourcefile=".../spec/objectspace_stats_spec.rb",
       @sourceline=77,
       @class_path=nil,
       @method_id=nil>,
     #<ObjectSpace::Stats::Allocation:0x007f132ac3d838
       @object="stringy string",
       @memsize=0,
-      @sourcefile="/usr/local/google/home/srawlins/code/objectspace-stats/spec/objectspace_stats_spec.rb",
+      @sourcefile=".../spec/objectspace_stats_spec.rb",
       @sourceline=76,
       @class_path=nil,
       @method_id=nil>
@@ -71,14 +71,15 @@ At this point, results is a Hash of (sourcefile, class) tuple keys and ObjectSpa
 }
 ```
 
+(I've manually inserted the ellipses.)
+
 Here we've grouped all of the allocations that occurred while the block that was
 passed into `ObjectSpace::Stats.new` by the sourcefile that the allocation
 occurred in, and the class of the object that was allocated. You can see that
 there are three different groups (`[spec_helper.rb, String]`,
-`[objectspace_stats_spec.rb, Array]`, and `[object_space_stats.rb, String]`),
-and the first two groups have just one allocation observed, and the third group
-has two allocations.
-```
+`[objectspace_stats_spec.rb, Array]`, and `[object_space_stats.rb, String]`).
+The first two groups have just one allocation observed, and the third group has
+two allocations.
 
 References
 ==========
