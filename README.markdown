@@ -51,7 +51,7 @@ it "should track new objects by path and class" do
 end
 ```
 
-At this point, results is a Hash of (sourcefile, class) tuple keys and ObjectSpace::Stats::Allocation values:
+At this point, `results` is a Hash of (sourcefile, class) tuple keys and ObjectSpace::Stats::Allocation values:
 
 ```ruby
 {
@@ -183,6 +183,35 @@ stats.allocations.group_by(:@sourcefile, :class).all.keys #=>
 ]
 ```
 
+The API
+=======
+
+So what methods are available on that AllocationsProxy thing? So far, the API
+consists of:
+
+* `#group_by`
+* `#where` accepts a hash of faux-attribute keys. For example,
+
+  ```ruby
+  allocations.where(class: String)
+  ```
+
+  It does not yet accept lambdas as values,
+  which would enable ActiveRecord-4-like calls, like
+
+  ```ruby
+  allocations.where(class: Array, size: ->(size) { size > 10 }
+  ```
+* `#from` which takes one String argument, which will matched against the
+  allocation filename.
+* `#not_from`, which is the opposite of `#from`
+* `#from_pwd`, which will filter the allocations to those originating from
+  `pwd`.
+
+What are faux attributes?
+-------------------------
+
+TODO
 
 References
 ==========
