@@ -81,6 +81,82 @@ there are three different groups (`[spec_helper.rb, String]`,
 The first two groups have just one allocation observed, and the third group has
 two allocations.
 
+A little slower
+---------------
+
+Let's look at this example a little slower. Firstly, let's look at how we
+collect object allocations using objectspace-stats:
+
+```ruby
+stats = ObjectSpace::Stats.new do
+  new_string     = "stringy string"
+  another_string = "another string"
+  an_array       = [1,1,2,3,5,8,13,21,34,55]
+  a_foreign_string = allocate_a_string_from_spec_helper
+end
+```
+
+Stats are collected by running a block through `ObjectSpace::Stats.new`. This is
+just a very very very thin wrapper around
+`ObjectSpace.trace_object_allocations`. You are handed back your new
+ObjectSpace::Stats, which for most purposes, is just an object that has all of
+your allocation information in `#allocations`. Let's look at the next line to
+see how we can pull useful information out:
+
+```ruby
+  results = stats.allocations.group_by(:@sourcefile, :class).all
+```
+
+If you are familiar with ActiveRecord, some of this might look familiar to you:
+`stats.allocations` will hand you back an AllocationsProxy object, which will
+collect the various transformations that you wish to run your collection of
+allocations through. In this example, we only make one transformation:
+`group_by(:@sourcefile, :class)`. Since more transformations might be called,
+this method actually just returns the same AllocationsProxy object (but now with
+your `group_by` command), so that these transformations can be chained. The
+final call that will run the transformations is `#to_a` (aliased to `#all`, just
+like ActiveRecord). Let's look at an example with more information to gather:
+
+```
+stats = ObjectSpace::Stats.new do
+  y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
+end
+
+=>
+
+[
+["/usr/local/google/home/srawlins/code/objectspace-stats/spec/objectspace_stats_spec.rb", Array],
+["/usr/local/google/home/srawlins/code/objectspace-stats/spec/objectspace_stats_spec.rb", String],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", String],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", MatchData],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Array],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Method],
+["<RUBYLIBDIR>/psych/nodes/node.rb", Array], ["(eval)", Psych::Nodes::Sequence],
+["<RUBYLIBDIR>/psych/tree_builder.rb", Psych::Nodes::Document],
+["<RUBYLIBDIR>/psych.rb", Hash], ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::TreeBuilder],
+["<RUBYLIBDIR>/psych/tree_builder.rb", Psych::Nodes::Stream],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Proc],
+["<RUBYLIBDIR>/psych/tree_builder.rb", Array],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", RubyVM::Env],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Hash],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::Visitors::YAMLTree::Registrar],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::Visitors::YAMLTree],
+["<RUBYLIBDIR>/psych/scalar_scanner.rb", Hash],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::ScalarScanner],
+["<RUBYLIBDIR>/psych/class_loader.rb", Hash],
+["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::ClassLoader],
+["<RUBYLIBDIR>/psych/visitors/emitter.rb", Psych::Emitter],
+["<RUBYLIBDIR>/psych/visitors/emitter.rb", Array],
+["<RUBYLIBDIR>/psych/nodes/node.rb", Psych::Visitors::Emitter],
+["<RUBYLIBDIR>/psych/nodes/node.rb", StringIO],
+["<RUBYLIBDIR>/psych/nodes/node.rb", String],
+["<RUBYLIBDIR>/psych/tree_builder.rb", Psych::Nodes::Scalar],
+["<RUBYLIBDIR>/psych/scalar_scanner.rb", String],
+["<RUBYLIBDIR>/psych/scalar_scanner.rb", MatchData],
+["<RUBYLIBDIR>/psych/visitors/emitter.rb", String]]
+```
+
+
 References
 ==========
 
