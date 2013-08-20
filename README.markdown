@@ -190,28 +190,41 @@ So what methods are available on that AllocationsProxy thing? So far, the API
 consists of:
 
 * `#group_by`
+* `#from` takes one String argument, which will matched against the
+  allocation filename.
+* `#not_from` is the opposite of `#from`
+* `#from_pwd` will filter the allocations to those originating from `pwd`.
 * `#where` accepts a hash of faux-attribute keys. For example,
 
   ```ruby
   allocations.where(class: String)
   ```
 
-  It does not yet accept lambdas as values,
-  which would enable ActiveRecord-4-like calls, like
+  It does not yet accept lambdas as values, which would enable
+  ActiveRecord-4-like calls, like
 
   ```ruby
   allocations.where(class: Array, size: ->(size) { size > 10 }
   ```
-* `#from` which takes one String argument, which will matched against the
-  allocation filename.
-* `#not_from`, which is the opposite of `#from`
-* `#from_pwd`, which will filter the allocations to those originating from
-  `pwd`.
+* `#bytes`, which has an inconsistent definition, I think... TODO
 
 What are faux attributes?
 -------------------------
 
-TODO
+Valid values for `#group_by`, and `#where` include:
+* instance variables on each `Allocation`. These primarily include `:@sourcefile`,
+  `:@sourceline`, etc.
+* methods available on the objects that required the allocation. These include
+  things like `:class`, or even `:size` if you know you only have objects that
+  respond to `:size`.
+* Allocation helper methods that return something special about the allocated
+  object. Right now this just includes `:class_plus`.
+
+Collectively, these things that you can group by or filter by, I've called them
+"faux attributes."
+
+What is `class_plus`?
+---------------------
 
 References
 ==========
