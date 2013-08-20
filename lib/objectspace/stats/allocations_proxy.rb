@@ -65,23 +65,43 @@ class ObjectSpace::Stats
 
     def group_by(*args)
       @group_by = Proc.new do |allocations|
-        attribute_getters = args.map do |arg|
-          if arg.to_s[0] == "@"
-            # use the public API rather than that instance_variable; don't want false nils
-            lambda { |allocation| allocation.send(arg.to_s[1..-1].to_sym) }
-          elsif Allocation::Helpers.include? arg
-            lambda { |allocation| allocation.send(arg) }
-          else
-            lambda { |allocation| allocation.object.send(arg) }
-          end
-        end
+        getters = attribute_getters(args)
 
         allocations.group_by do |allocation|
-          attribute_getters.map { |getter| getter.call(allocation) }
+          getters.map { |getter| getter.call(allocation) }
         end
       end
 
       self
+    end
+
+    def where(hash)
+      @wheres << Proc.new do |allocations|
+        conditions = hash.inject({}) do |h, pair|
+          faux, value = *pair
+          getter = attribute_getters([faux]).first
+          h.merge(getter => value)
+        end
+
+        allocations.select do |allocation|
+          conditions.all? { |getter, value| getter.call(allocation) == value }
+        end
+      end
+
+      self
+    end
+
+    def attribute_getters(faux_attributes)
+      faux_attributes.map do |faux|
+        if faux.to_s[0] == "@"
+          # use the public API rather than that instance_variable; don't want false nils
+          lambda { |allocation| allocation.send(faux.to_s[1..-1].to_sym) }
+        elsif Allocation::Helpers.include? faux
+          lambda { |allocation| allocation.send(faux) }
+        else
+          lambda { |allocation| allocation.object.send(faux) }
+        end
+      end
     end
 
     def bytes

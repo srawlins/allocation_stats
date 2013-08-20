@@ -262,4 +262,15 @@ describe ObjectSpace::Stats do
     files = stats.allocations.not_from("yajl.rb").group_by(:@sourcefile, :class).all.keys.map(&:first)
     files.should_not include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
+
+  it "should be able to filter to just one path" do
+    stats = ObjectSpace::Stats.new do
+      j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
+    end
+
+    classes = stats.allocations.where(class: String).group_by(:@sourcefile, :class).all.keys.map(&:last)
+    classes.should_not include(Array)
+    classes.should_not include(Hash)
+    classes.should include(String)
+  end
 end
