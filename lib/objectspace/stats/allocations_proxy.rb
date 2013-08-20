@@ -47,6 +47,14 @@ class ObjectSpace::Stats
       self
     end
 
+    def not_from(pattern)
+      @wheres << Proc.new do |allocations|
+        allocations.reject { |allocation| allocation.sourcefile[pattern] }
+      end
+
+      self
+    end
+
     def from_pwd
       @wheres << Proc.new do |allocations|
         allocations.select { |allocation| allocation.sourcefile[@pwd] }
@@ -57,19 +65,19 @@ class ObjectSpace::Stats
 
     def group_by(*args)
       @group_by = Proc.new do |allocations|
-        # TODO Really subpar. Rework this so I'm not running this logic for
-        # EVERY ALLOCATION, times EVERY GROUP_BY ARG! ARRRRRGGGHHH!
-        allocations.group_by do |allocation|
-          args.map do |arg|
-            if arg.to_s[0] == "@"
-              # still use the public API; don't want false nils
-              allocation.send(arg.to_s[1..-1].to_sym)
-            elsif Allocation::Helpers.include? arg
-              allocation.send(arg)
-            else
-              allocation.object.send(arg)
-            end
+        attribute_getters = args.map do |arg|
+          if arg.to_s[0] == "@"
+            # use the public API rather than that instance_variable; don't want false nils
+            lambda { |allocation| allocation.send(arg.to_s[1..-1].to_sym) }
+          elsif Allocation::Helpers.include? arg
+            lambda { |allocation| allocation.send(arg) }
+          else
+            lambda { |allocation| allocation.object.send(arg) }
           end
+        end
+
+        allocations.group_by do |allocation|
+          attribute_getters.map { |getter| getter.call(allocation) }
         end
       end
 
