@@ -184,5 +184,46 @@ class ObjectSpace::Stats
 
       self
     end
+
+    DEFAULT_COLUMNS = [:sourcefile, :sourceline, :class_path, :method_id, :memsize, :class]
+    NUMERIC_COLUMNS = [:sourceline, :memsize]
+    def to_text
+      resolved = to_a
+
+      widths = DEFAULT_COLUMNS.map do |attr|
+        if attr == :class
+          max_length_among(resolved.map { |a| a.object.class } << attr.to_s)
+        else
+          max_length_among(resolved.map(&attr) << attr.to_s)
+        end
+      end
+
+      text = DEFAULT_COLUMNS.each_with_index.map { |attr, idx|
+        attr.to_s.center(widths[idx])
+      }.join("  ").rstrip << "\n"
+
+      text << widths.map { |width|
+        "-" * width
+      }.join("  ") << "\n"
+
+      text << resolved.map { |allocation|
+        DEFAULT_COLUMNS.each_with_index.map { |attr, idx|
+          if NUMERIC_COLUMNS.include? attr
+            allocation.send(attr).to_s.rjust(widths[idx])
+          else
+            if attr == :class
+              allocation.object.send(attr).to_s.ljust(widths[idx])
+            else
+              allocation.send(attr).to_s.ljust(widths[idx])
+            end
+          end
+        }.join("  ").rstrip << "\n"
+      }.join("")
+    end
+
+    def max_length_among(ary)
+      ary.inject(0) {|max, el| max > el.to_s.size ? max : el.to_s.size }
+    end
+    private :max_length_among
   end
 end

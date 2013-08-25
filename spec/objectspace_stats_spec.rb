@@ -272,4 +272,29 @@ describe ObjectSpace::Stats do
     classes.should_not include(Hash)
     classes.should include(String)
   end
+
+  it "should output to fixed-width text correctly" do
+    class MyClass
+      def my_method
+        @new_hash = {0 => "foo", 1 => "bar"}
+      end
+    end
+
+    stats = ObjectSpace::Stats.new do
+      MyClass.new.my_method
+    end
+    line_01 = __LINE__ - 7
+    line_02 = __LINE__ - 3
+
+    text = stats.allocations.to_text
+
+    expect(text).to eq <<-EXPECTED
+                                     sourcefile                                        sourceline  class_path  method_id  memsize   class
+-------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------
+#{__FILE__}         #{line_01}  MyClass     my_method      192  Hash
+#{__FILE__}         #{line_01}  MyClass     my_method        0  String
+#{__FILE__}         #{line_01}  MyClass     my_method        0  String
+#{__FILE__}         #{line_02}  Class       new              0  MyClass
+    EXPECTED
+  end
 end
