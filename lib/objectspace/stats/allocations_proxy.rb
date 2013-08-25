@@ -4,12 +4,42 @@
 class ObjectSpace::Stats
   # AllocationsProxy acts as a proxy for an array of Allocation objects. The
   # idea behind this class is merely to provide some domain-specific methods
-  # for filtering, sorting, and grouping allocation information. This class
-  # uses the Command pattern heavily, in order to build and maintain the list
-  # of transformations it will ultimately perform, before retrieving the
+  # for transforming (filtering, sorting, and grouping) allocation information.
+  # This class uses the Command pattern heavily, in order to build and maintain
+  # the list of transforms it will ultimately perform, before retrieving the
   # transformed collection of Allocations.
+  #
+  # Chaining
+  # ========
+  #
+  # Use of the Command pattern and Procs allows for transform-chaining in any
+  # order. Apply methods such as {#from} and {#group_by} to build the internal
+  # list of transforms. The transforms will not be applied to the collection of
+  # Allocations until a call to {#to_a} ({#all}) resolves them.
+  #
+  # Filtering Transforms
+  # --------------------
+  #
+  # Methods that filter the collection of Allocations will add a transform to
+  # an Array, `@wheres`. When the result set is finally retrieved, each where
+  # is applied serially, so that `@wheres` represents a logical conjunction
+  # (_"and"_) of of filtering transforms. Presently there is no way to _"or"_
+  # filtering transforms together with a logical disjunction.
+  #
+  # Mapping Transforms
+  # ------------------
+  #
+  # Grouping Transform
+  # ------------------
+  #
+  # Only one method will allow a grouping transform: {#group_by}. Only one
+  # grouping transform is allowed; subsequent calls to {#group_by} will only
+  # replace the previous grouping transform.
   class AllocationsProxy
 
+    # Instantiate an {AllocationsProxy} with an array of Allocations. {AllocationProxy's} view of `pwd` is set at instantiation.
+    #
+    # @param [Array<Allocation>] allocations array of Allocation objects
     def initialize(allocations)
       @allocations = allocations
       @pwd = Dir.pwd
@@ -132,6 +162,13 @@ class ObjectSpace::Stats
     end
     private :attribute_getters
 
+    # Map to bytes via {Allocation#memsize #memsize}. This is done in one of two ways:
+    #
+    # * If the current result set is an Array, then this transform just maps
+    #   each Allocation to its `#memsize`.
+    # * If the current result set is a Hash (meaning it has been grouped), then
+    #   this transform maps each value in the Hash (which is an Array of
+    #   Allocations) to the sum of the Allocation `#memsizes` within.
     def bytes
       @mappers << Proc.new do |allocations|
         if allocations.is_a? Array
