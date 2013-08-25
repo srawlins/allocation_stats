@@ -64,8 +64,8 @@ class ObjectSpace::Stats
 
   # Proxy for the @new_allocations array that allows for individual filtering,
   # sorting, and grouping of the Allocation objects.
-  def allocations
-    AllocationsProxy.new(@new_allocations)
+  def allocations(alias_paths: false)
+    AllocationsProxy.new(@new_allocations, alias_paths: alias_paths)
   end
 
   def profile_and_start_gc

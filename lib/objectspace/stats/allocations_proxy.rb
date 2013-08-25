@@ -37,15 +37,19 @@ class ObjectSpace::Stats
   # replace the previous grouping transform.
   class AllocationsProxy
 
-    # Instantiate an {AllocationsProxy} with an array of Allocations. {AllocationProxy's} view of `pwd` is set at instantiation.
+    attr_accessor :alias_paths
+
+    # Instantiate an {AllocationsProxy} with an array of Allocations.
+    # {AllocationProxy's} view of `pwd` is set at instantiation.
     #
     # @param [Array<Allocation>] allocations array of Allocation objects
-    def initialize(allocations)
+    def initialize(allocations, alias_paths: false)
       @allocations = allocations
       @pwd = Dir.pwd
       @wheres = []
       @group_by = nil
       @mappers  = []
+      @alias_paths = alias_paths
     end
 
     def to_a
@@ -150,7 +154,9 @@ class ObjectSpace::Stats
 
     def attribute_getters(faux_attributes)
       faux_attributes.map do |faux|
-        if faux.to_s[0] == "@"
+        if faux.to_s == "@sourcefile"
+          lambda { |allocation| allocation.sourcefile(@alias_paths) }
+        elsif faux.to_s[0] == "@"
           # use the public API rather than that instance_variable; don't want false nils
           lambda { |allocation| allocation.send(faux.to_s[1..-1].to_sym) }
         elsif Allocation::Helpers.include? faux
@@ -185,21 +191,19 @@ class ObjectSpace::Stats
       self
     end
 
-    DEFAULT_COLUMNS = [:sourcefile, :sourceline, :class_path, :method_id, :memsize, :class]
-    NUMERIC_COLUMNS = [:sourceline, :memsize]
+    DEFAULT_COLUMNS = [:@sourcefile, :@sourceline, :@class_path, :@method_id, :@memsize, :class]
+    NUMERIC_COLUMNS = [:@sourceline, :@memsize]
     def to_text(columns: DEFAULT_COLUMNS)
       resolved = to_a
 
-      widths = columns.map do |attr|
-        if attr == :class
-          max_length_among(resolved.map { |a| a.object.class } << attr.to_s)
-        else
-          max_length_among(resolved.map(&attr) << attr.to_s)
-        end
+      getters = attribute_getters(columns)
+      widths = getters.each_with_index.map do |attr, idx|
+        max_length_among(resolved.map { |a| attr.call(a) } << columns[idx].to_s.sub("@", ""))
       end
 
+
       text = columns.each_with_index.map { |attr, idx|
-        attr.to_s.center(widths[idx])
+        attr.to_s.sub("@", "").center(widths[idx])
       }.join("  ").rstrip << "\n"
 
       text << widths.map { |width|
@@ -207,16 +211,9 @@ class ObjectSpace::Stats
       }.join("  ") << "\n"
 
       text << resolved.map { |allocation|
-        columns.each_with_index.map { |attr, idx|
-          if NUMERIC_COLUMNS.include? attr
-            allocation.send(attr).to_s.rjust(widths[idx])
-          else
-            if attr == :class
-              allocation.object.send(attr).to_s.ljust(widths[idx])
-            else
-              allocation.send(attr).to_s.ljust(widths[idx])
-            end
-          end
+        getters.each_with_index.map { |getter, idx|
+          value = getter.call(allocation).to_s
+          NUMERIC_COLUMNS.include?(columns[idx]) ? value.rjust(widths[idx]) : value.ljust(widths[idx])
         }.join("  ").rstrip << "\n"
       }.join("")
     end

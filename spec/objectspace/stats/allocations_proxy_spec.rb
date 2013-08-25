@@ -171,7 +171,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations.group_by(:@sourcefile, :class).all.keys.map(&:first)
+    files = stats.allocations(alias_paths: true).group_by(:@sourcefile, :class).all.keys.map(&:first)
     files.should include("<RUBYLIBDIR>/psych/nodes/node.rb")
   end
 
@@ -180,7 +180,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations.group_by(:@sourcefile, :class).all.keys.map(&:first)
+    files = stats.allocations(alias_paths: true).group_by(:@sourcefile, :class).all.keys.map(&:first)
     files.should include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
@@ -217,7 +217,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations.group_by(:@sourcefile, :class).from("yajl.rb").all.keys.map(&:first)
+    files = stats.allocations(alias_paths: true).group_by(:@sourcefile, :class).from("yajl.rb").all.keys.map(&:first)
     files.should include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
@@ -242,12 +242,9 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should output to fixed-width text correctly" do
-    stats = ObjectSpace::Stats.new do
-      MyClass.new.my_method
-    end
-    line_01 = __LINE__ - 7
-    line_02 = __LINE__ - 3
+    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
 
+    line = __LINE__ - 2
     text = stats.allocations.to_text
 
     expect(text).to eq <<-EXPECTED
@@ -256,26 +253,37 @@ describe ObjectSpace::Stats::AllocationsProxy do
 #{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method      192  Hash
 #{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method        0  String
 #{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method        0  String
-#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line_02}  Class       new              0  MyClass
+#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  Class       new              0  MyClass
     EXPECTED
   end
 
-  it "should output to fixed-width text correctly" do
-    stats = ObjectSpace::Stats.new do
-      MyClass.new.my_method
-    end
-    line_01 = __LINE__ - 7
-    line_02 = __LINE__ - 3
+  it "should output to fixed-width text with custom columns correctly" do
+    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
 
-    text = stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class])
+    line = __LINE__ - 2
+    text = stats.allocations.to_text(columns: [:@sourcefile, :@sourceline, :class])
+    spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
-    expect(text).to eq <<-EXPECTED
-                                              sourcefile                                                 sourceline   class
--------------------------------------------------------------------------------------------------------  ----------  -------
-#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  Hash
-#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  String
-#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  String
-#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line_02}  MyClass
-    EXPECTED
+    expect(text).to include("                                              sourcefile                                                 sourceline   class")
+    expect(text).to include("#{"-" * MAX_PATH_LENGTH}  ----------  -------")
+    expect(text).to include("#{spec_helper_plus_line}  Hash")
+    expect(text).to include("#{spec_helper_plus_line}  String")
+    expect(text).to include("#{spec_helper_plus_line}  String")
+    expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  MyClass")
+  end
+
+  it "should output to fixed-width text with custom columns and aliased paths correctly" do
+    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
+
+    line = __LINE__ - 2
+    text = stats.allocations(alias_paths: true).to_text(columns: [:@sourcefile, :@sourceline, :class])
+    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                       #{MyClass::MY_METHOD_BODY_LINE}"
+
+    expect(text).to include("                      sourcefile                        sourceline   class")
+    expect(text).to include("------------------------------------------------------  ----------  -------")
+    expect(text).to include("#{spec_helper_plus_line}  Hash")
+    expect(text).to include("#{spec_helper_plus_line}  String")
+    expect(text).to include("#{spec_helper_plus_line}  String")
+    expect(text).to include("<PWD>/spec/objectspace/stats/allocations_proxy_spec.rb         #{line}  MyClass")
   end
 end

@@ -11,7 +11,7 @@ class ObjectSpace::Stats
     # a list of helper methods that Allocation provides on top of the object that was allocated.
     Helpers = [:class_plus]
 
-    attr_accessor :memsize, :sourcefile
+    attr_accessor :memsize
 
     # @!attribute [r] class_path
     # the classpath of where the object was allocated
@@ -33,14 +33,6 @@ class ObjectSpace::Stats
       @object = object
       @memsize    = ObjectSpace.memsize_of(object)
       @sourcefile = ObjectSpace.allocation_sourcefile(object)
-      #if @sourcefile && @sourcefile[PWD]
-        #@sourcefile.sub!(PWD, "<PWD>")
-      #elsif @sourcefile && @sourcefile[ObjectSpace::Stats::Rubylibdir]
-      if @sourcefile && @sourcefile[ObjectSpace::Stats::Rubylibdir]
-        @sourcefile.sub!(ObjectSpace::Stats::Rubylibdir, "<RUBYLIBDIR>")
-      elsif @sourcefile && @sourcefile[ObjectSpace::Stats::GemDir]
-        @sourcefile.sub!(ObjectSpace::Stats::GemDir, "<GEMDIR>")
-      end
       @sourceline = ObjectSpace.allocation_sourceline(object)
       @class_path = ObjectSpace.allocation_class_path(object)
       @method_id  = ObjectSpace.allocation_method_id(object)
@@ -49,6 +41,21 @@ class ObjectSpace::Stats
     def file; @sourcefile; end
     #def line; @sourceline; end
     alias :line :sourceline
+
+    def sourcefile_alias
+      case
+      when @sourcefile[PWD]
+        @sourcefile.sub(PWD, "<PWD>")
+      when @sourcefile[ObjectSpace::Stats::Rubylibdir]
+        @sourcefile.sub(ObjectSpace::Stats::Rubylibdir, "<RUBYLIBDIR>")
+      when @sourcefile[ObjectSpace::Stats::GemDir]
+        @sourcefile.sub(ObjectSpace::Stats::GemDir, "<GEMDIR>")
+      end
+    end
+
+    def sourcefile(alias_path = false)
+      alias_path ? sourcefile_alias : @sourcefile
+    end
 
     def class_plus
       case @object
@@ -69,11 +76,11 @@ class ObjectSpace::Stats
     #
     # Override Rubygems' Kernel#gem
     def gem
-      gem_regex = /<GEMDIR>#{File::SEPARATOR}
+      gem_regex = /#{ObjectSpace::Stats::GemDir}#{File::SEPARATOR}
         gems#{File::SEPARATOR}
         (?<gem_name>[^#{File::SEPARATOR}]+)#{File::SEPARATOR}
       /x
-      match = gem_regex.match(@sourcefile)
+      match = gem_regex.match(sourcefile)
       match && match[:gem_name]
     end
 
