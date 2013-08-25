@@ -1,43 +1,9 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
-require_relative "spec_helper"
+require_relative File.join("..", "..", "spec_helper")
 
-describe ObjectSpace::Stats do
-  it "should only track new objects" do
-    existing_array = [1,2,3,4,5]
-
-    stats = ObjectSpace::Stats.new do
-      new_array = [1,2,3,4,5]
-    end
-
-    stats.new_allocations.class.should be Array
-    stats.new_allocations.size.should == 1
-  end
-
-  it "should only track new objects; Hash String count twice :(" do
-    existing_array = [1,2,3,4,5]
-
-    stats = ObjectSpace::Stats.new do
-      new_hash = {"foo" => "bar", "baz" => "quux"}
-    end
-
-    stats.new_allocations.size.should == 7
-  end
-
-  it "should only track new objects" do
-    existing_array = [1,2,3,4,5]
-
-    stats = ObjectSpace::Stats.new do
-      new_object = Object.new
-      new_array  = []
-      new_string = ""
-    end
-
-    stats.new_allocations.class.should be Array
-    stats.new_allocations.size.should == 3
-  end
-
+describe ObjectSpace::Stats::AllocationsProxy do
   it "should track new objects by path" do
     existing_array = [1,2,3,4,5]
 
@@ -289,8 +255,8 @@ describe ObjectSpace::Stats do
     text = stats.allocations.to_text
 
     expect(text).to eq <<-EXPECTED
-                                     sourcefile                                        sourceline  class_path  method_id  memsize   class
--------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------
+                                              sourcefile                                                 sourceline  class_path  method_id  memsize   class
+-------------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------
 #{__FILE__}         #{line_01}  MyClass     my_method      192  Hash
 #{__FILE__}         #{line_01}  MyClass     my_method        0  String
 #{__FILE__}         #{line_01}  MyClass     my_method        0  String
