@@ -2,6 +2,12 @@
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
 class ObjectSpace::Stats
+  # AllocationsProxy acts as a proxy for an array of Allocation objects. The
+  # idea behind this class is merely to provide some domain-specific methods
+  # for filtering, sorting, and grouping allocation information. This class
+  # uses the Command pattern heavily, in order to build and maintain the list
+  # of transformations it will ultimately perform, before retrieving the
+  # transformed collection of Allocations.
   class AllocationsProxy
 
     def initialize(allocations)
@@ -39,6 +45,14 @@ class ObjectSpace::Stats
       self
     end
 
+    # Select allocations for which the {Allocation#sourcefile sourcefile}
+    # includes `pattern`.
+    #
+    # `#from` can be called multiple times, adding to `@wheres`. See
+    # documentation for {AllocationsProxy} for more information about chaining.
+    #
+    # @param [String] pattern the partial file path to match against, in the
+    #   {Allocation#sourcefile Allocation's sourcefile}.
     def from(pattern)
       @wheres << Proc.new do |allocations|
         allocations.select { |allocation| allocation.sourcefile[pattern] }
@@ -47,6 +61,14 @@ class ObjectSpace::Stats
       self
     end
 
+    # Select allocations for which the {Allocation#sourcefile sourcefile} does
+    # not include `pattern`.
+    #
+    # `#not_from` can be called multiple times, adding to `@wheres`. See
+    # documentation for {AllocationsProxy} for more information about chaining.
+    #
+    # @param [String] pattern the partial file path to match against, in the
+    #   {Allocation#sourcefile Allocation's sourcefile}.
     def not_from(pattern)
       @wheres << Proc.new do |allocations|
         allocations.reject { |allocation| allocation.sourcefile[pattern] }
@@ -55,6 +77,11 @@ class ObjectSpace::Stats
       self
     end
 
+    # Select allocations for which the {Allocation#sourcefile sourcefile}
+    # includes the present working directory.
+    #
+    # `#from_pwd` can be called multiple times, adding to `@wheres`. See
+    # documentation for {AllocationsProxy} for more information about chaining.
     def from_pwd
       @wheres << Proc.new do |allocations|
         allocations.select { |allocation| allocation.sourcefile[@pwd] }
@@ -103,6 +130,7 @@ class ObjectSpace::Stats
         end
       end
     end
+    private :attribute_getters
 
     def bytes
       @mappers << Proc.new do |allocations|

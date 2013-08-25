@@ -5,11 +5,29 @@ require "json"
 
 class ObjectSpace::Stats
   class Allocation
+    # a convenience constants
     PWD = Dir.pwd
+
+    # a list of helper methods that Allocation provides on top of the object that was allocated.
     Helpers = [:class_plus]
-    attr_accessor :object,
-                  :memsize, :sourcefile
-    attr_reader :class_path, :method_id, :sourceline
+
+    attr_accessor :memsize, :sourcefile
+
+    # @!attribute [r] class_path
+    # the classpath of where the object was allocated
+    attr_reader :class_path
+
+    # @!attribute [r] method_id
+    # the method ID of where the object was allocated
+    attr_reader :method_id
+
+    # @!attribute [r] object
+    # the actual object that was allocated
+    attr_reader :object
+
+    # @!attribute [r] sourceline
+    # the line in the sourcefile where the object was allocated
+    attr_reader :sourceline
 
     def initialize(object)
       @object = object
@@ -46,6 +64,9 @@ class ObjectSpace::Stats
       end
     end
 
+    # @return [String] the name of the Rubygem where this allocation occurred.
+    # @return [nil] if this allocation did not occur in a Rubygem.
+    #
     # Override Rubygems' Kernel#gem
     def gem
       gem_regex = /<GEMDIR>#{File::SEPARATOR}
@@ -56,6 +77,8 @@ class ObjectSpace::Stats
       match && match[:gem_name]
     end
 
+    # Convert into a JSON string, which can be used in rack-objectspace-stats's
+    # interactive mode.
     def to_json
       {
         "memsize" => @memsize,
@@ -71,7 +94,7 @@ class ObjectSpace::Stats
     def element_classes(classes)
       if classes.size == 1
         classes.first
-      elsif classes.size < 4
+      elsif classes.size > 1 && classes.size < 4
         classes.join(",")
       else
         nil

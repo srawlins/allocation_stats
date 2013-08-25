@@ -7,10 +7,26 @@ require_relative "stats/allocations_proxy"
 
 require "rubygems"
 
+# Container for an aggregation of object allocation data. Pass a block to
+# {#initialize ObjectSpace::Stats.new()}. Then use the ObjectSpace::Stats object's public
+# interface to dig into the data and discover useful information.
 class ObjectSpace::Stats
+  # a convenience constant
   Rubylibdir = RbConfig::CONFIG["rubylibdir"]
+
+  # a convenience constant
   GemDir     = Gem.dir
-  attr_accessor :gc_profiler_report, :new_allocations
+
+  attr_accessor :gc_profiler_report
+
+  # @!attribute [r] new_allocations
+  # @return [Array]
+  # allocation data for all new objects that were allocated
+  # during the {#initialize} block. It is better to use {#allocations}, which
+  # returns an {AllocationsProxy}, which has a much more convenient,
+  # domain-specific API for filtering, sorting, and grouping {Allocation}
+  # objects, than this plain Array object.
+  attr_reader :new_allocations
 
   def initialize
     GC.start
@@ -41,10 +57,13 @@ class ObjectSpace::Stats
     profile_and_start_gc
   end
 
+  # Inspect @new_allocations, the canonical array of {Allocation} objects.
   def inspect
     @new_allocations.inspect
   end
 
+  # Proxy for the @new_allocations array that allows for individual filtering,
+  # sorting, and grouping of the Allocation objects.
   def allocations
     AllocationsProxy.new(@new_allocations)
   end
@@ -56,18 +75,5 @@ class ObjectSpace::Stats
     @gc_profiler_report = GC::Profiler.result
     GC::Profiler.disable
   end
-
-
-  def group_by_multiple(ary, *args)
-    ary.group_by do |el|
-      if args.size == 1
-        arg = args.first
-        arg.to_s[0] == "@" ? el.instance_variable_get(arg) : el.object.send(arg)
-      else
-        args.map do |arg|
-          arg.to_s[0] == "@" ? el.instance_variable_get(arg) : el.object.send(arg)
-        end
-      end
-    end
-  end
+  private :profile_and_start_gc
 end
