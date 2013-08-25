@@ -187,10 +187,10 @@ class ObjectSpace::Stats
 
     DEFAULT_COLUMNS = [:sourcefile, :sourceline, :class_path, :method_id, :memsize, :class]
     NUMERIC_COLUMNS = [:sourceline, :memsize]
-    def to_text
+    def to_text(columns: DEFAULT_COLUMNS)
       resolved = to_a
 
-      widths = DEFAULT_COLUMNS.map do |attr|
+      widths = columns.map do |attr|
         if attr == :class
           max_length_among(resolved.map { |a| a.object.class } << attr.to_s)
         else
@@ -198,7 +198,7 @@ class ObjectSpace::Stats
         end
       end
 
-      text = DEFAULT_COLUMNS.each_with_index.map { |attr, idx|
+      text = columns.each_with_index.map { |attr, idx|
         attr.to_s.center(widths[idx])
       }.join("  ").rstrip << "\n"
 
@@ -207,7 +207,7 @@ class ObjectSpace::Stats
       }.join("  ") << "\n"
 
       text << resolved.map { |allocation|
-        DEFAULT_COLUMNS.each_with_index.map { |attr, idx|
+        columns.each_with_index.map { |attr, idx|
           if NUMERIC_COLUMNS.include? attr
             allocation.send(attr).to_s.rjust(widths[idx])
           else

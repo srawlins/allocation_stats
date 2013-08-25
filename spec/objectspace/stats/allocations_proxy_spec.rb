@@ -2,6 +2,8 @@
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
 require_relative File.join("..", "..", "spec_helper")
+SPEC_HELPER_PATH = File.expand_path(File.join(__dir__, "..", "..", "spec_helper.rb"))
+MAX_PATH_LENGTH = [SPEC_HELPER_PATH.size, __FILE__.size].max
 
 describe ObjectSpace::Stats::AllocationsProxy do
   it "should track new objects by path" do
@@ -240,12 +242,6 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should output to fixed-width text correctly" do
-    class MyClass
-      def my_method
-        @new_hash = {0 => "foo", 1 => "bar"}
-      end
-    end
-
     stats = ObjectSpace::Stats.new do
       MyClass.new.my_method
     end
@@ -257,10 +253,29 @@ describe ObjectSpace::Stats::AllocationsProxy do
     expect(text).to eq <<-EXPECTED
                                               sourcefile                                                 sourceline  class_path  method_id  memsize   class
 -------------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------
-#{__FILE__}         #{line_01}  MyClass     my_method      192  Hash
-#{__FILE__}         #{line_01}  MyClass     my_method        0  String
-#{__FILE__}         #{line_01}  MyClass     my_method        0  String
-#{__FILE__}         #{line_02}  Class       new              0  MyClass
+#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method      192  Hash
+#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method        0  String
+#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method        0  String
+#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line_02}  Class       new              0  MyClass
+    EXPECTED
+  end
+
+  it "should output to fixed-width text correctly" do
+    stats = ObjectSpace::Stats.new do
+      MyClass.new.my_method
+    end
+    line_01 = __LINE__ - 7
+    line_02 = __LINE__ - 3
+
+    text = stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class])
+
+    expect(text).to eq <<-EXPECTED
+                                              sourcefile                                                 sourceline   class
+-------------------------------------------------------------------------------------------------------  ----------  -------
+#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  Hash
+#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  String
+#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  String
+#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line_02}  MyClass
     EXPECTED
   end
 end

@@ -13,3 +13,11 @@ end
 def allocate_a_string_from_spec_helper
   return "a string from spec_helper"
 end
+
+class MyClass
+  def my_method
+    @new_hash = {0 => "foo", 1 => "bar"}
+  end
+
+  MY_METHOD_BODY_LINE = __LINE__ - 3
+end
