@@ -154,12 +154,10 @@ class ObjectSpace::Stats
 
     def attribute_getters(faux_attributes)
       faux_attributes.map do |faux|
-        if faux.to_s == "@sourcefile"
+        if faux == :sourcefile
           lambda { |allocation| allocation.sourcefile(@alias_paths) }
-        elsif faux.to_s[0] == "@"
-          # use the public API rather than that instance_variable; don't want false nils
-          lambda { |allocation| allocation.send(faux.to_s[1..-1].to_sym) }
-        elsif Allocation::Helpers.include? faux
+        elsif Allocation::HELPERS.include?(faux) ||
+              Allocation::ATTRIBUTES.include?(faux)
           lambda { |allocation| allocation.send(faux) }
         else
           lambda { |allocation| allocation.object.send(faux) }
@@ -191,19 +189,19 @@ class ObjectSpace::Stats
       self
     end
 
-    DEFAULT_COLUMNS = [:@sourcefile, :@sourceline, :@class_path, :@method_id, :@memsize, :class]
-    NUMERIC_COLUMNS = [:@sourceline, :@memsize]
+    DEFAULT_COLUMNS = [:sourcefile, :sourceline, :class_path, :method_id, :memsize, :class]
+    NUMERIC_COLUMNS = [:sourceline, :memsize]
     def to_text(columns: DEFAULT_COLUMNS)
       resolved = to_a
 
       getters = attribute_getters(columns)
       widths = getters.each_with_index.map do |attr, idx|
-        max_length_among(resolved.map { |a| attr.call(a) } << columns[idx].to_s.sub("@", ""))
+        max_length_among(resolved.map { |a| attr.call(a) } << columns[idx].to_s)
       end
 
 
       text = columns.each_with_index.map { |attr, idx|
-        attr.to_s.sub("@", "").center(widths[idx])
+        attr.to_s.center(widths[idx])
       }.join("  ").rstrip << "\n"
 
       text << widths.map { |width|
@@ -219,7 +217,7 @@ class ObjectSpace::Stats
     end
 
     def max_length_among(ary)
-      ary.inject(0) {|max, el| max > el.to_s.size ? max : el.to_s.size }
+      ary.inject(0) { |max, el| max > el.to_s.size ? max : el.to_s.size }
     end
     private :max_length_among
   end

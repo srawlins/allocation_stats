@@ -9,7 +9,12 @@ class ObjectSpace::Stats
     PWD = Dir.pwd
 
     # a list of helper methods that Allocation provides on top of the object that was allocated.
-    Helpers = [:class_plus]
+    HELPERS = [:class_plus, :gem]
+
+    # a list of attributes that Allocation has on itself; inquiries in this
+    # list should just use Allocation's attributes, rather than the internal
+    # object's.
+    ATTRIBUTES = [:sourcefile, :sourceline, :class_path, :method_id, :memsize]
 
     attr_accessor :memsize
 
@@ -50,6 +55,8 @@ class ObjectSpace::Stats
         @sourcefile.sub(ObjectSpace::Stats::Rubylibdir, "<RUBYLIBDIR>")
       when @sourcefile[ObjectSpace::Stats::GemDir]
         @sourcefile.sub(ObjectSpace::Stats::GemDir, "<GEMDIR>")
+      else
+        @sourcefile
       end
     end
 
@@ -88,13 +95,14 @@ class ObjectSpace::Stats
     # interactive mode.
     def to_json
       {
-        "memsize" => @memsize,
-        "class_path" => @class_path,
-        "method_id" => @method_id,
-        "file" => @sourcefile,
-        "line" => @sourceline,
-        "class" => @object.class.name,
-        "class_plus" => class_plus
+        "memsize"      => @memsize,
+        "class_path"   => @class_path,
+        "method_id"    => @method_id,
+        "file"         => sourcefile_alias,
+        "file (raw)"   => @sourcefile,
+        "line"         => @sourceline,
+        "class"        => @object.class.name,
+        "class_plus"   => class_plus
       }.to_json
     end
 

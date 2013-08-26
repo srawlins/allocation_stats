@@ -14,7 +14,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       another_string = "another string"
     end
 
-    results = stats.allocations.group_by(:@sourcefile).all
+    results = stats.allocations.group_by(:sourcefile).all
     results.class.should eq Hash
     results.keys.size.should == 1
     results.keys.first.should eq [__FILE__]
@@ -31,7 +31,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       a_foreign_string = allocate_a_string_from_spec_helper
     end
 
-    results = stats.allocations.group_by(:@sourcefile).all
+    results = stats.allocations.group_by(:sourcefile).all
     results.keys.size.should == 2
     results.keys.should include([__FILE__])
     results.keys.any? { |file| file[0]["spec_helper"] }.should be_true
@@ -47,7 +47,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       a_foreign_string = allocate_a_string_from_spec_helper
     end
 
-    results = stats.allocations.group_by(:@sourcefile, :class).all
+    results = stats.allocations.group_by(:sourcefile, :class).all
     results.keys.size.should == 3
     results.keys.should include([__FILE__, String])
     results.keys.should include([__FILE__, Array])
@@ -61,7 +61,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       end
     end
 
-    results = stats.allocations.group_by(:@sourcefile, :class_plus).all
+    results = stats.allocations.group_by(:sourcefile, :class_plus).all
     results.keys.size.should == 2
     results.keys.should include([__FILE__, "Array<Array>"])
     results.keys.should include([__FILE__, "Array<Fixnum>"])
@@ -73,7 +73,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       three_classes = [1,1.0,"1"]
     end
 
-    results = stats.allocations.group_by(:@sourcefile, :class_plus).all
+    results = stats.allocations.group_by(:sourcefile, :class_plus).all
     results.keys.size.should == 3
     results.keys.should include([__FILE__, "Array<Fixnum,String>"])
     results.keys.should include([__FILE__, "Array<Fixnum,Float,String>"])
@@ -87,7 +87,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       end
     end
 
-    results = stats.allocations.group_by(:@sourcefile, :class_plus).all
+    results = stats.allocations.group_by(:sourcefile, :class_plus).all
     pending "Not written yet"
   end
 
@@ -101,7 +101,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       a_foreign_string = allocate_a_string_from_spec_helper
     end
 
-    results = stats.allocations.group_by(:@class_path, :@method_id, :class).all
+    results = stats.allocations.group_by(:class_path, :method_id, :class).all
     results.keys.size.should == 3
     # Things allocated inside rspec describe and it blocks have nil as the
     # method_id.
@@ -130,7 +130,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       an_a = A.new                                           # 5: A from here
     end
 
-    byte_sums = stats.allocations.group_by(:@sourcefile, :class).bytes.all
+    byte_sums = stats.allocations.group_by(:sourcefile, :class).bytes.all
     byte_sums.keys.size.should == 5
     byte_sums.keys.should include([__FILE__, Array])
     byte_sums[[__FILE__, Array]].should eq 80  # 10 Fixnums * 8 bytes/Fixnum
@@ -171,7 +171,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations(alias_paths: true).group_by(:@sourcefile, :class).all.keys.map(&:first)
+    files = stats.allocations(alias_paths: true).group_by(:sourcefile, :class).all.keys.map(&:first)
     files.should include("<RUBYLIBDIR>/psych/nodes/node.rb")
   end
 
@@ -180,7 +180,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations(alias_paths: true).group_by(:@sourcefile, :class).all.keys.map(&:first)
+    files = stats.allocations(alias_paths: true).group_by(:sourcefile, :class).all.keys.map(&:first)
     files.should include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
@@ -189,7 +189,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    gems = stats.allocations.group_by(:@gem, :class).all.keys.map(&:first)
+    gems = stats.allocations.group_by(:gem, :class).all.keys.map(&:first)
     gems.should include("yajl-ruby-1.1.0")
     gems.should include(nil)
   end
@@ -199,7 +199,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations.group_by(:@sourcefile, :class).from_pwd.all.keys.map(&:first)
+    files = stats.allocations.group_by(:sourcefile, :class).from_pwd.all.keys.map(&:first)
     files.should_not include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
@@ -208,7 +208,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations.from_pwd.group_by(:@sourcefile, :class).all.keys.map(&:first)
+    files = stats.allocations.from_pwd.group_by(:sourcefile, :class).all.keys.map(&:first)
     files.should_not include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
@@ -217,7 +217,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations(alias_paths: true).group_by(:@sourcefile, :class).from("yajl.rb").all.keys.map(&:first)
+    files = stats.allocations(alias_paths: true).group_by(:sourcefile, :class).from("yajl.rb").all.keys.map(&:first)
     files.should include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
@@ -226,7 +226,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    files = stats.allocations.not_from("yajl.rb").group_by(:@sourcefile, :class).all.keys.map(&:first)
+    files = stats.allocations.not_from("yajl.rb").group_by(:sourcefile, :class).all.keys.map(&:first)
     files.should_not include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
@@ -235,7 +235,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
-    classes = stats.allocations.where(class: String).group_by(:@sourcefile, :class).all.keys.map(&:last)
+    classes = stats.allocations.where(class: String).group_by(:sourcefile, :class).all.keys.map(&:last)
     classes.should_not include(Array)
     classes.should_not include(Hash)
     classes.should include(String)
@@ -261,7 +261,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
     stats = ObjectSpace::Stats.new { MyClass.new.my_method }
 
     line = __LINE__ - 2
-    text = stats.allocations.to_text(columns: [:@sourcefile, :@sourceline, :class])
+    text = stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class])
     spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
     expect(text).to include("                                              sourcefile                                                 sourceline   class")
@@ -276,7 +276,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
     stats = ObjectSpace::Stats.new { MyClass.new.my_method }
 
     line = __LINE__ - 2
-    text = stats.allocations(alias_paths: true).to_text(columns: [:@sourcefile, :@sourceline, :class])
+    text = stats.allocations(alias_paths: true).to_text(columns: [:sourcefile, :sourceline, :class])
     spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                       #{MyClass::MY_METHOD_BODY_LINE}"
 
     expect(text).to include("                      sourcefile                        sourceline   class")
