@@ -246,15 +246,13 @@ describe ObjectSpace::Stats::AllocationsProxy do
 
     line = __LINE__ - 2
     text = stats.allocations.to_text
+    spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
-    expect(text).to eq <<-EXPECTED
-                                              sourcefile                                                 sourceline  class_path  method_id  memsize   class
--------------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------
-#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method      192  Hash
-#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method        0  String
-#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}  MyClass     my_method        0  String
-#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  Class       new              0  MyClass
-    EXPECTED
+    expect(text).to include("                                              sourcefile                                                 sourceline  class_path  method_id  memsize   class")
+    expect(text).to include("-------------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------")
+    expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method      192  Hash")
+    expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method        0  String")
+    expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  Class       new              0  MyClass")
   end
 
   it "should output to fixed-width text with custom columns correctly" do
@@ -267,7 +265,6 @@ describe ObjectSpace::Stats::AllocationsProxy do
     expect(text).to include("                                              sourcefile                                                 sourceline   class")
     expect(text).to include("#{"-" * MAX_PATH_LENGTH}  ----------  -------")
     expect(text).to include("#{spec_helper_plus_line}  Hash")
-    expect(text).to include("#{spec_helper_plus_line}  String")
     expect(text).to include("#{spec_helper_plus_line}  String")
     expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  MyClass")
   end
@@ -282,7 +279,6 @@ describe ObjectSpace::Stats::AllocationsProxy do
     expect(text).to include("                      sourcefile                        sourceline   class")
     expect(text).to include("------------------------------------------------------  ----------  -------")
     expect(text).to include("#{spec_helper_plus_line}  Hash")
-    expect(text).to include("#{spec_helper_plus_line}  String")
     expect(text).to include("#{spec_helper_plus_line}  String")
     expect(text).to include("<PWD>/spec/objectspace/stats/allocations_proxy_spec.rb         #{line}  MyClass")
   end
