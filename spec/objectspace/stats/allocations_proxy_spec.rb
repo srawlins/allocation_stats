@@ -286,4 +286,18 @@ describe ObjectSpace::Stats::AllocationsProxy do
     expect(text).to include("#{spec_helper_plus_line}  String")
     expect(text).to include("<PWD>/spec/objectspace/stats/allocations_proxy_spec.rb         #{line}  MyClass")
   end
+
+  it "should output to fixed-width text after group_by correctly" do
+    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
+
+    line = __LINE__ - 2
+    text = stats.allocations(alias_paths: true).group_by(:sourcefile, :sourceline, :class).to_text
+    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                       #{MyClass::MY_METHOD_BODY_LINE}"
+
+    expect(text).to include("                      sourcefile                        sourceline   class   count\n")
+    expect(text).to include("------------------------------------------------------  ----------  -------  -----\n")
+    expect(text).to include("#{spec_helper_plus_line}  Hash         1\n")
+    expect(text).to include("#{spec_helper_plus_line}  String       2\n")
+    expect(text).to include("<PWD>/spec/objectspace/stats/allocations_proxy_spec.rb         #{line}  MyClass      1\n")
+  end
 end

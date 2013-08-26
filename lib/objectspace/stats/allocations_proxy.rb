@@ -37,8 +37,6 @@ class ObjectSpace::Stats
   # replace the previous grouping transform.
   class AllocationsProxy
 
-    attr_accessor :alias_paths
-
     # Instantiate an {AllocationsProxy} with an array of Allocations.
     # {AllocationProxy's} view of `pwd` is set at instantiation.
     #
@@ -70,6 +68,16 @@ class ObjectSpace::Stats
       results
     end
     alias :all :to_a
+
+    def alias_paths(value = nil)
+      # reader
+      return @alias_paths if value.nil?
+
+      # writer
+      @alias_paths = value
+
+      return self
+    end
 
     def sorted_by_size
       @mappers << Proc.new do |allocations|
@@ -125,8 +133,10 @@ class ObjectSpace::Stats
     end
 
     def group_by(*args)
+      @group_keys = args
+
       @group_by = Proc.new do |allocations|
-        getters = attribute_getters(args)
+        getters = attribute_getters(@group_keys)
 
         allocations.group_by do |allocation|
           getters.map { |getter| getter.call(allocation) }
@@ -194,11 +204,19 @@ class ObjectSpace::Stats
     def to_text(columns: DEFAULT_COLUMNS)
       resolved = to_a
 
-      getters = attribute_getters(columns)
-      widths = getters.each_with_index.map do |attr, idx|
-        max_length_among(resolved.map { |a| attr.call(a) } << columns[idx].to_s)
+      if resolved.is_a? Array
+        to_text_from_plain(resolved, columns: columns)
+      elsif resolved.is_a? Hash
+        to_text_from_groups(resolved)
       end
+    end
 
+    def to_text_from_plain(resolved, columns: DEFAULT_COLUMNS)
+      getters = attribute_getters(columns)
+
+      widths = getters.each_with_index.map do |attr, idx|
+        (resolved.map { |a| attr.call(a).to_s.size } << columns[idx].to_s.size).max
+      end
 
       text = columns.each_with_index.map { |attr, idx|
         attr.to_s.center(widths[idx])
@@ -216,9 +234,28 @@ class ObjectSpace::Stats
       }.join("")
     end
 
-    def max_length_among(ary)
-      ary.inject(0) { |max, el| max > el.to_s.size ? max : el.to_s.size }
+    def to_text_from_groups(resolved)
+      columns = @group_keys + ["count"]
+      widths = columns.each_with_index.map do |column, idx|
+        (resolved.keys.map { |group| group[idx].to_s.size } << columns[idx].to_s.size).max
+      end
+
+      text = columns.each_with_index.map { |attr, idx|
+        attr.to_s.center(widths[idx])
+      }.join("  ").rstrip << "\n"
+
+      text << widths.map { |width|
+        "-" * width
+      }.join("  ") << "\n"
+
+      text << resolved.map { |group, allocations|
+        line = group.each_with_index.map { |attr, idx|
+          NUMERIC_COLUMNS.include?(columns[idx]) ?
+            attr.to_s.rjust(widths[idx]) :
+            attr.to_s.ljust(widths[idx])
+        }.join("  ")
+        line << "  #{allocations.size.to_s.rjust(5)}\n"
+      }.join("")
     end
-    private :max_length_among
   end
 end
