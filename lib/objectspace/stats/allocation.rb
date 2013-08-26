@@ -16,6 +16,8 @@ class ObjectSpace::Stats
     # object's.
     ATTRIBUTES = [:sourcefile, :sourceline, :class_path, :method_id, :memsize]
 
+    # @!attribute [rw] memsize
+    # the memsize of the object which was allocated
     attr_accessor :memsize
 
     # @!attribute [r] class_path
@@ -47,6 +49,13 @@ class ObjectSpace::Stats
     #def line; @sourceline; end
     alias :line :sourceline
 
+    # If the source file has recognized paths in it, those portions of the full path will be aliased like so:
+    #
+    # * the present work directory is aliased to "<PWD>"
+    # * the Ruby lib directory (where the standard library lies) is aliased to "<RUBYLIBDIR>"
+    # * the Gem directory (where all gems lie) is aliased to "<GEMDIR>"
+    #
+    # @return the source file, aliased.
     def sourcefile_alias
       case
       when @sourcefile[PWD]
@@ -60,6 +69,10 @@ class ObjectSpace::Stats
       end
     end
 
+    # Either the full source file (via `@sourcefile`), or the aliased source
+    # file, via {#sourcefile_alias}
+    #
+    # @param [TrueClass] alias_path whether or not to alias the path
     def sourcefile(alias_path = false)
       alias_path ? sourcefile_alias : @sourcefile
     end
