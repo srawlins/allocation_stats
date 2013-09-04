@@ -61,7 +61,7 @@ puts stats.allocations(alias_paths: true).group_by(:sourcefile, :sourceline, :cl
 -                             1  MyClass      1
 ```
 
-More on `ObjectSpace.trace_object_allocations`
+More on `trace_object_allocations()`
 ---------------------------------------------
 
 Ruby 2.1 will be released with a new feature that enables one to trace object
@@ -91,11 +91,11 @@ allocations.rb
 ```
 
 These methods (`allocation_sourcefile`, etc) are not available outside
-`ObjectSpace.trace_object_allocations`. By the same token, you cannot trace any
+`trace_object_allocations()`. By the same token, you cannot trace any
 allocations that happen outside of a block passed to
-`ObjectSpace.trace_object_allocations`. Because of these limitations, a richer
-API is necessary in order to take advantage of the new allocation-tracing
-features.  This gem provides such an API. Let's look at more examples:
+`trace_object_allocations()`. Because of these limitations, a richer API is
+necessary in order to take advantage of the new allocation-tracing features.
+This gem provides such an API. Let's look at more examples:
 
 Example from the specs
 ----------------------
@@ -116,8 +116,8 @@ results = stats.allocations.group_by(:@sourcefile, :class).to_a
 We've grouped all of the traced allocations by the **source file** that the
 allocation occurred in, and the **class of the object** that was allocated. The
 list of allocations can be "transformed" in a number of ways (including
-`#group_by`), so the transformations must be resolved by finally calling `#to_a`.
-The result is the following Hash of (sourcefile, class) tuple keys and
+`#group_by`), so the transformations must be ultimately resolved by calling
+`#to_a`.  The result is the following Hash of (sourcefile, class) tuple keys and
 ObjectSpace::Stats::Allocation values:
 
 ```ruby
@@ -179,7 +179,7 @@ A little slower
 ---------------
 
 Let's look at this example a little slower. Firstly, let's look at how we
-collect object allocations using objectspace-stats:
+collect object allocations using ObjectSpace Stats:
 
 ```ruby
 stats = ObjectSpace::Stats.new do
@@ -191,32 +191,31 @@ end
 ```
 
 Stats are collected by running a block through `ObjectSpace::Stats.new`. This is
-largely just a thin wrapper around
-`ObjectSpace.trace_object_allocations`. You are handed back your new
-ObjectSpace::Stats, which for most purposes, is just an object that has all of
-your allocation information in `#allocations`. Let's look at the next line to
-see how we can pull useful information out:
+largely just a thin wrapper around `trace_object_allocations()`. You are handed
+back your new ObjectSpace::Stats, which essentially just holds all of the
+allocation information, accessible via `#allocations`. Let's look at the next
+line to see how we can pull useful information out:
 
 ```ruby
   results = stats.allocations.group_by(:@sourcefile, :class).to_a
 ```
 
 If you are familiar with ActiveRecord, some of this might look familiar to you:
-`stats.allocations` will hand you back an AllocationsProxy object, which will
-collect the various transformations that you wish to run your collection of
-allocations through. In this example, we only make one transformation:
+`stats.allocations` will hand you back an {AllocationsProxy} object, designed to
+hold the various transformations that you wish to run the allocations through.
+AllocationsProxy uses the Command pattern to store up transformations before
+they will actually be applied. In this example, we only make one transformation:
 `group_by(:@sourcefile, :class)`. Since more transformations might be called,
-this method actually just returns the same AllocationsProxy object (but now with
-your `group_by` command), so that these transformations can be chained. The
-final call that will run the transformations is `#to_a` (aliased to `#all`, just
-like ActiveRecord).
+this method just returns the same AllocationsProxy object, so that
+transformations can be chained. The final call that will execute the
+transformations is `#to_a` (aliased to `#all`, just like ActiveRecord).
 
 Psych Example
 -------------
 
-Let's look at an example with more information to gather, using Ruby's Psych:
+Let's look at an example with more varied allocations, using Ruby's Psych:
 
-```
+```ruby
 stats = ObjectSpace::Stats.new do
   y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
 end
@@ -265,15 +264,16 @@ consists of:
 * `#group_by`
 * `#from` takes one String argument, which will matched against the
   allocation filename.
-* `#not_from` is the opposite of `#from`
-* `#from_pwd` will filter the allocations to those originating from `pwd`.
-* `#where` accepts a hash of faux-attribute keys. For example,
+* `#not_from` is the opposite of `#from`.
+* `#from_pwd` will filter the allocations down to those originating from `pwd`
+  (e.g. allocations originating from "my project")
+* `#where` accepts a hash of faux attribute keys. For example,
 
   ```ruby
   allocations.where(class: String)
   ```
 
-  It does not yet accept lambdas as values, which would enable
+  It does not yet accept lambdas as values, which _would_ enable
   ActiveRecord-4-like calls, like
 
   ```ruby
@@ -284,17 +284,16 @@ consists of:
 What are faux attributes?
 -------------------------
 
-Valid values for `#group_by`, and `#where` include:
-* instance variables on each `Allocation`. These primarily include `:@sourcefile`,
-  `:@sourceline`, etc.
-* methods available on the objects that required the allocation. These include
-  things like `:class`, or even `:size` if you know you only have objects that
-  respond to `:size`.
+Valid values for `#group_by` and `#where` include:
+* instance variables on each `Allocation`. These include `:sourcefile`,
+  `:sourceline`, etc.
+* methods available on the objects that were allocated. These include things
+  like `:class`, or even `:size` if you know you only have objects that respond
+  to `:size`.
 * Allocation helper methods that return something special about the allocated
   object. Right now this just includes `:class_plus`.
 
-Collectively, these things that you can group by or filter by, I've called them
-"faux attributes."
+I'm calling these things that you can group by or filter by, "faux attributes."
 
 What is `class_plus`?
 ---------------------
