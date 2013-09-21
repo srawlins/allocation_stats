@@ -208,7 +208,7 @@ class ObjectSpace::Stats
     # Resolve the AllocationsProxy (by calling {#to_a}) and return tabular
     # information about the Allocations as a String.
     #
-    # @params [Array<Symbol>] columns a list of columns to print out
+    # @param [Array<Symbol>] columns a list of columns to print out
     #
     # @return [String] information about the Allocations, in a tabular format
     def to_text(columns: DEFAULT_COLUMNS)

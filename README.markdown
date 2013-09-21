@@ -219,55 +219,108 @@ familiar to you: `stats.allocations` will hand you back an {AllocationsProxy}
 object, designed to hold the various transformations that you wish to run the
 allocations through.  AllocationsProxy uses the Command pattern to store up
 transformations before they will actually be applied. In this example, we only
-make one transformation: `group_by(:@sourcefile, :class)`. Since more
-transformations might be called, this method just returns the same
-AllocationsProxy object, so that transformations can be chained. The final call
-that will execute the transformations is `#to_a` (aliased to `#all`, just like
-ActiveRecord).
+make one transformation: `group_by(:@sourcefile, :class)`.  This method just
+returns the same AllocationsProxy object back, so that transformations can be
+chained. The final call that will execute the transformations is `#to_a`
+(aliased to `#all`, just like ActiveRecord).
 
 Psych Example
 -------------
 
-Let's look at an example with more varied allocations, using Ruby's Psych:
+Let's look at an example with more varied allocations, using Ruby's Psych. This
+one is found in `examples/trace_psych_keys.rb`:
 
 ```ruby
 stats = ObjectSpace::Stats.new do
   y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
 end
 
-stats.allocations.group_by(:@sourcefile, :class).all.keys #=>
+stats.allocations.group_by(:sourcefile, :class).all.keys.each { |key| puts key.inspect }
 
-[
-  [".../spec/objectspace_stats_spec.rb", Array],
-  [".../spec/objectspace_stats_spec.rb", String],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", String],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", MatchData],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Array],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Method],
-  ["<RUBYLIBDIR>/psych/nodes/node.rb", Array], ["(eval)", Psych::Nodes::Sequence],
-  ["<RUBYLIBDIR>/psych/tree_builder.rb", Psych::Nodes::Document],
-  ["<RUBYLIBDIR>/psych.rb", Hash], ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::TreeBuilder],
-  ["<RUBYLIBDIR>/psych/tree_builder.rb", Psych::Nodes::Stream],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Proc],
-  ["<RUBYLIBDIR>/psych/tree_builder.rb", Array],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", RubyVM::Env],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Hash],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::Visitors::YAMLTree::Registrar],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::Visitors::YAMLTree],
-  ["<RUBYLIBDIR>/psych/scalar_scanner.rb", Hash],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::ScalarScanner],
-  ["<RUBYLIBDIR>/psych/class_loader.rb", Hash],
-  ["<RUBYLIBDIR>/psych/visitors/yaml_tree.rb", Psych::ClassLoader],
-  ["<RUBYLIBDIR>/psych/visitors/emitter.rb", Psych::Emitter],
-  ["<RUBYLIBDIR>/psych/visitors/emitter.rb", Array],
-  ["<RUBYLIBDIR>/psych/nodes/node.rb", Psych::Visitors::Emitter],
-  ["<RUBYLIBDIR>/psych/nodes/node.rb", StringIO],
-  ["<RUBYLIBDIR>/psych/nodes/node.rb", String],
-  ["<RUBYLIBDIR>/psych/tree_builder.rb", Psych::Nodes::Scalar],
-  ["<RUBYLIBDIR>/psych/scalar_scanner.rb", String],
-  ["<RUBYLIBDIR>/psych/scalar_scanner.rb", MatchData],
-  ["<RUBYLIBDIR>/psych/visitors/emitter.rb", String]
-]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", String]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Array]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", MatchData]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Method]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/nodes/node.rb", Array]
+["(eval)", Psych::Nodes::Sequence]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/tree_builder.rb", Psych::Nodes::Document]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/tree_builder.rb", Psych::Nodes::Stream]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Proc]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", RubyVM::Env]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Hash]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Psych::Visitors::YAMLTree::Registrar]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Psych::Visitors::YAMLTree]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/scalar_scanner.rb", Hash]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Psych::ScalarScanner]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/class_loader.rb", Hash]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Psych::ClassLoader]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/tree_builder.rb", Array]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/yaml_tree.rb", Psych::TreeBuilder]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych.rb", Hash]
+["examples/trace_psych_inspect.rb", Array]
+["examples/trace_psych_inspect.rb", String]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/emitter.rb", String]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/emitter.rb", Array]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/emitter.rb", RubyVM::InstructionSequence]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/visitor.rb", String]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/visitor.rb", MatchData]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/visitor.rb", Regexp]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/visitors/emitter.rb", Psych::Emitter]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/nodes/node.rb", Psych::Visitors::Emitter]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/nodes/node.rb", StringIO]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/nodes/node.rb", String]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/tree_builder.rb", Psych::Nodes::Scalar]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/scalar_scanner.rb", String]
+["/usr/local/rbenv/versions/2.1.0-dev/lib/ruby/2.1.0/psych/scalar_scanner.rb", MatchData]
+```
+
+Again, it is difficult to find useful information from these results without
+aggregating. Let's do that (`examples/trace_psych_group_by`):
+
+```ruby
+stats = ObjectSpace::Stats.new do
+  y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
+end
+
+puts stats.allocations(alias_paths: true).group_by(:sourcefile, :class).to_text
+
+               sourcefile                                class                  count
+----------------------------------------  ------------------------------------  -----
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Array                                    12
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  String                                   20
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  MatchData                                 3
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Method                                    5
+<RUBYLIBDIR>/psych/nodes/node.rb          Array                                     3
+(eval)                                    Psych::Nodes::Sequence                    1
+<RUBYLIBDIR>/psych/tree_builder.rb        Psych::Nodes::Document                    1
+<RUBYLIBDIR>/psych/tree_builder.rb        Psych::Nodes::Stream                      1
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Proc                                      1
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  RubyVM::Env                               1
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Hash                                      3
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Psych::Visitors::YAMLTree::Registrar      1
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Psych::Visitors::YAMLTree                 1
+<RUBYLIBDIR>/psych/scalar_scanner.rb      Hash                                      2
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Psych::ScalarScanner                      1
+<RUBYLIBDIR>/psych/class_loader.rb        Hash                                      1
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Psych::ClassLoader                        1
+<RUBYLIBDIR>/psych/tree_builder.rb        Array                                     1
+<RUBYLIBDIR>/psych/visitors/yaml_tree.rb  Psych::TreeBuilder                        1
+<RUBYLIBDIR>/psych.rb                     Hash                                      1
+./examples/trace_psych_raw.rb             Array                                     1
+./examples/trace_psych_raw.rb             String                                    2
+<RUBYLIBDIR>/psych/visitors/emitter.rb    String                                   29
+<RUBYLIBDIR>/psych/visitors/emitter.rb    Array                                     3
+<RUBYLIBDIR>/psych/visitors/emitter.rb    RubyVM::InstructionSequence               1
+<RUBYLIBDIR>/psych/visitors/visitor.rb    String                                   38
+<RUBYLIBDIR>/psych/visitors/visitor.rb    MatchData                                 5
+<RUBYLIBDIR>/psych/visitors/visitor.rb    Regexp                                    1
+<RUBYLIBDIR>/psych/visitors/emitter.rb    Psych::Emitter                            1
+<RUBYLIBDIR>/psych/nodes/node.rb          Psych::Visitors::Emitter                  1
+<RUBYLIBDIR>/psych/nodes/node.rb          StringIO                                  1
+<RUBYLIBDIR>/psych/nodes/node.rb          String                                    3
+<RUBYLIBDIR>/psych/tree_builder.rb        Psych::Nodes::Scalar                      2
+<RUBYLIBDIR>/psych/scalar_scanner.rb      String                                    5
+<RUBYLIBDIR>/psych/scalar_scanner.rb      MatchData                                 2
 ```
 
 The API
