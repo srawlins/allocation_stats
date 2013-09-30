@@ -5,7 +5,7 @@ class MyClass
   end
 end
 
-require File.join(__dir__, "..", "lib", "objectspace", "stats")
+require File.join(__dir__, "..", "lib", "allocation_stats")
 
-stats = ObjectSpace::Stats.new { MyClass.new.my_method }
+stats = AllocationStats.new { MyClass.new.my_method }
 puts stats.allocations(alias_paths: true).to_text

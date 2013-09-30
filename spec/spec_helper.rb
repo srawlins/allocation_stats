@@ -1,12 +1,12 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
-require_relative "../lib/objectspace/stats"
+require_relative "../lib/allocation_stats"
 require "yaml"
 require "yajl"
 
 if RbConfig::CONFIG["MAJOR"].to_i < 2 || RbConfig::CONFIG["MINOR"].to_i < 1
-  warn "Error: ObjectStats requires Ruby 2.1 or greater"
+  warn "Error: AllocationStats requires Ruby 2.1 or greater"
   exit 1
 end
 

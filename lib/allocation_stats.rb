@@ -2,20 +2,20 @@
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
 require "objspace"
-require_relative "stats/allocation"
-require_relative "stats/allocations_proxy"
+require_relative "allocation_stats/allocation"
+require_relative "allocation_stats/allocations_proxy"
 
 require "rubygems"
 
 # Container for an aggregation of object allocation data. Pass a block to
-# {#initialize ObjectSpace::Stats.new()}. Then use the ObjectSpace::Stats object's public
+# {#initialize AllocationStats.new()}. Then use the AllocationStats object's public
 # interface to dig into the data and discover useful information.
-class ObjectSpace::Stats
+class AllocationStats
   # a convenience constant
   Rubylibdir = RbConfig::CONFIG["rubylibdir"]
 
   # a convenience constant
-  GemDir     = Gem.dir
+  GemDir = Gem.dir
 
   attr_accessor :gc_profiler_report
 

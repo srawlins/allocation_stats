@@ -1,13 +1,13 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
-require_relative File.join("..", "spec_helper")
+require_relative File.join("spec_helper")
 
-describe ObjectSpace::Stats do
+describe AllocationStats do
   it "should only track new objects" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_array = [1,2,3,4,5]
     end
 
@@ -18,7 +18,7 @@ describe ObjectSpace::Stats do
   it "should only track new objects; Hash String count twice :(" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_hash = {"foo" => "bar", "baz" => "quux"}
     end
 
@@ -28,7 +28,7 @@ describe ObjectSpace::Stats do
   it "should only track new objects" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_object = Object.new
       new_array  = []
       new_string = ""

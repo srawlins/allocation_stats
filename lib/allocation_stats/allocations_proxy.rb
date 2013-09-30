@@ -1,7 +1,7 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
-class ObjectSpace::Stats
+class AllocationStats
   # AllocationsProxy acts as a proxy for an array of Allocation objects. The
   # idea behind this class is merely to provide some domain-specific methods
   # for transforming (filtering, sorting, and grouping) allocation information.

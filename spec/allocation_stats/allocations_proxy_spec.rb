@@ -1,15 +1,15 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
-require_relative File.join("..", "..", "spec_helper")
-SPEC_HELPER_PATH = File.expand_path(File.join(__dir__, "..", "..", "spec_helper.rb"))
+require_relative File.join("..", "spec_helper")
+SPEC_HELPER_PATH = File.expand_path(File.join(__dir__, "..", "spec_helper.rb"))
 MAX_PATH_LENGTH = [SPEC_HELPER_PATH.size, __FILE__.size].max
 
-describe ObjectSpace::Stats::AllocationsProxy do
+describe AllocationStats::AllocationsProxy do
   it "should track new objects by path" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_string     = "stringy string"
       another_string = "another string"
     end
@@ -25,7 +25,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   it "should track new objects by path" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_string     = "stringy string"
       another_string = "another string"
       a_foreign_string = allocate_a_string_from_spec_helper
@@ -40,7 +40,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   it "should track new objects by path and class" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_string     = "stringy string"
       another_string = "another string"
       an_array       = [1,1,2,3,5,8,13,21,34,55]
@@ -54,7 +54,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should track new objects by path and class_name (Array with 1x type)" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       square_groups = []
       10.times do |i|
         square_groups << [(4*i+0)**2, (4*i+1)**2, (4*i+2)**2, (4*i+3)**2]
@@ -68,7 +68,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should track new objects by path and class_name (Array with 2-3x type)" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       two_classes = [1,2,3,"a","b","c"]
       three_classes = [1,1.0,"1"]
     end
@@ -80,7 +80,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should track new objects by path and class_name (Arrays with same size)" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       ary = []
       10.times do
         ary << [1,2,3,4,5]
@@ -94,7 +94,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   it "should track new objects by class_path, method_id and class" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_string       = "stringy string"
       another_string   = "another string"
       an_array         = [1,1,2,3,5,8,13,21,34,55]
@@ -111,7 +111,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should track new bytes" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       an_array       = [1,1,2,3,5,8,13,21,34,55]
     end
 
@@ -121,7 +121,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should track new bytes by path and class" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_string     = "stringy string"                      # 1: String from here
       an_array       = [1,1,2,3,5,8,13,21,34,55]             # 2: Array from here
       a_foreign_string = allocate_a_string_from_spec_helper  # 3: String from spec_helper
@@ -139,7 +139,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   it "should track new allocations in pwd" do
     existing_array = [1,2,3,4,5]
 
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_string     = "stringy string"           # 1: String from here
       another_string = "another string"
       an_array       = [1,1,2,3,5,8,13,21,34,55]  # 2: Array from here
@@ -156,7 +156,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
 
   it "should pass itself to Yajl::Encoder.encode correctly" do
     pending "I don't know why this isn't passing, but it's not worth worrying about now"
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       new_hash = {0 => "foo", 1 => "bar"}
     end
 
@@ -167,7 +167,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should shorten paths of stuff in Rubylibdir" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -176,7 +176,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should shorten paths of stuff in gems" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -185,7 +185,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should track new objects by gem" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -195,7 +195,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should be able to filter to just anything from pwd" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -204,7 +204,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should be able to filter to just anything from pwd, even if from is specified before group_by" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -213,7 +213,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should be able to filter to just one path" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -222,7 +222,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should be able to filter to just one path" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -231,7 +231,7 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should be able to filter to just one path" do
-    stats = ObjectSpace::Stats.new do
+    stats = AllocationStats.new do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -242,27 +242,27 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should output to fixed-width text correctly" do
-    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
+    stats = AllocationStats.new { MyClass.new.my_method }
 
     line = __LINE__ - 2
     text = stats.allocations.to_text
     spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
-    expect(text).to include("                                              sourcefile                                                 sourceline  class_path  method_id  memsize   class")
-    expect(text).to include("-------------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------")
+    expect(text).to include("                                              sourcefile                                                sourceline  class_path  method_id  memsize   class")
+    expect(text).to include("------------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------")
     expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method      192  Hash")
     expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method        0  String")
     expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  Class       new              0  MyClass")
   end
 
   it "should output to fixed-width text with custom columns correctly" do
-    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
+    stats = AllocationStats.new { MyClass.new.my_method }
 
     line = __LINE__ - 2
     text = stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class])
     spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
-    expect(text).to include("                                              sourcefile                                                 sourceline   class")
+    expect(text).to include("                                              sourcefile                                                sourceline   class")
     expect(text).to include("#{"-" * MAX_PATH_LENGTH}  ----------  -------")
     expect(text).to include("#{spec_helper_plus_line}  Hash")
     expect(text).to include("#{spec_helper_plus_line}  String")
@@ -270,30 +270,30 @@ describe ObjectSpace::Stats::AllocationsProxy do
   end
 
   it "should output to fixed-width text with custom columns and aliased paths correctly" do
-    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
+    stats = AllocationStats.new { MyClass.new.my_method }
 
     line = __LINE__ - 2
     text = stats.allocations(alias_paths: true).to_text(columns: [:sourcefile, :sourceline, :class])
-    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                       #{MyClass::MY_METHOD_BODY_LINE}"
+    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                      #{MyClass::MY_METHOD_BODY_LINE}"
 
-    expect(text).to include("                      sourcefile                        sourceline   class")
-    expect(text).to include("------------------------------------------------------  ----------  -------")
+    expect(text).to include("                     sourcefile                        sourceline   class")
+    expect(text).to include("-----------------------------------------------------  ----------  -------")
     expect(text).to include("#{spec_helper_plus_line}  Hash")
     expect(text).to include("#{spec_helper_plus_line}  String")
-    expect(text).to include("<PWD>/spec/objectspace/stats/allocations_proxy_spec.rb         #{line}  MyClass")
+    expect(text).to include("<PWD>/spec/allocation_stats/allocations_proxy_spec.rb         #{line}  MyClass")
   end
 
   it "should output to fixed-width text after group_by correctly" do
-    stats = ObjectSpace::Stats.new { MyClass.new.my_method }
+    stats = AllocationStats.new { MyClass.new.my_method }
 
     line = __LINE__ - 2
     text = stats.allocations(alias_paths: true).group_by(:sourcefile, :sourceline, :class).to_text
-    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                       #{MyClass::MY_METHOD_BODY_LINE}"
+    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                      #{MyClass::MY_METHOD_BODY_LINE}"
 
-    expect(text).to include("                      sourcefile                        sourceline   class   count\n")
-    expect(text).to include("------------------------------------------------------  ----------  -------  -----\n")
+    expect(text).to include("                     sourcefile                        sourceline   class   count\n")
+    expect(text).to include("-----------------------------------------------------  ----------  -------  -----\n")
     expect(text).to include("#{spec_helper_plus_line}  Hash         1\n")
     expect(text).to include("#{spec_helper_plus_line}  String       2\n")
-    expect(text).to include("<PWD>/spec/objectspace/stats/allocations_proxy_spec.rb         #{line}  MyClass      1\n")
+    expect(text).to include("<PWD>/spec/allocation_stats/allocations_proxy_spec.rb         #{line}  MyClass      1\n")
   end
 end

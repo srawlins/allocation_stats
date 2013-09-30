@@ -3,7 +3,7 @@
 
 require "json"
 
-class ObjectSpace::Stats
+class AllocationStats
   class Allocation
     # a convenience constants
     PWD = Dir.pwd
@@ -60,10 +60,10 @@ class ObjectSpace::Stats
       case
       when @sourcefile[PWD]
         @sourcefile.sub(PWD, "<PWD>")
-      when @sourcefile[ObjectSpace::Stats::Rubylibdir]
-        @sourcefile.sub(ObjectSpace::Stats::Rubylibdir, "<RUBYLIBDIR>")
-      when @sourcefile[ObjectSpace::Stats::GemDir]
-        @sourcefile.sub(ObjectSpace::Stats::GemDir, "<GEMDIR>")
+      when @sourcefile[AllocationStats::Rubylibdir]
+        @sourcefile.sub(AllocationStats::Rubylibdir, "<RUBYLIBDIR>")
+      when @sourcefile[AllocationStats::GemDir]
+        @sourcefile.sub(AllocationStats::GemDir, "<GEMDIR>")
       else
         @sourcefile
       end
@@ -96,7 +96,7 @@ class ObjectSpace::Stats
     #
     # Override Rubygems' Kernel#gem
     def gem
-      gem_regex = /#{ObjectSpace::Stats::GemDir}#{File::SEPARATOR}
+      gem_regex = /#{AllocationStats::GemDir}#{File::SEPARATOR}
         gems#{File::SEPARATOR}
         (?<gem_name>[^#{File::SEPARATOR}]+)#{File::SEPARATOR}
       /x
@@ -104,7 +104,7 @@ class ObjectSpace::Stats
       match && match[:gem_name]
     end
 
-    # Convert into a JSON string, which can be used in rack-objectspace-stats's
+    # Convert into a JSON string, which can be used in rack-allocation_stats's
     # interactive mode.
     def to_json
       {

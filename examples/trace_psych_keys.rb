@@ -1,7 +1,7 @@
 require "yaml"
-require File.join(__dir__, "..", "lib", "objectspace", "stats")
+require File.join(__dir__, "..", "lib", "allocation_stats")
 
-stats = ObjectSpace::Stats.new do
+stats = AllocationStats.new do
   y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
 end
 
