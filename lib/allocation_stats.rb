@@ -39,20 +39,37 @@ class AllocationStats
       @existing_object_ids[object.object_id / 1000] << object.object_id
     end
 
-    ObjectSpace.trace_object_allocations do
-      yield if block_given?
+    if block_given?
+      ObjectSpace.trace_object_allocations {
+        yield
+      }
 
-      # not weak references
-      @new_allocations = []
-      ObjectSpace.each_object.to_a.each do |object|
-        next if ObjectSpace.allocation_sourcefile(object).nil?
-        next if ObjectSpace.allocation_sourcefile(object) == __FILE__
-        next if @existing_object_ids[object.object_id / 1000] &&
-                @existing_object_ids[object.object_id / 1000].include?(object.object_id)
+      collect_new_allocations
+      ObjectSpace.trace_object_allocations_clear
 
-        @new_allocations << Allocation.new(object)
-      end
+      profile_and_start_gc
+    else
+      ObjectSpace.trace_object_allocations_start
     end
+  end
+
+  def collect_new_allocations
+    @new_allocations = []
+    ObjectSpace.each_object.to_a.each do |object|
+      next if ObjectSpace.allocation_sourcefile(object).nil?
+      next if ObjectSpace.allocation_sourcefile(object) == __FILE__
+      next if @existing_object_ids[object.object_id / 1000] &&
+              @existing_object_ids[object.object_id / 1000].include?(object.object_id)
+
+      @new_allocations << Allocation.new(object)
+    end
+  end
+
+  def stop
+    collect_new_allocations
+
+    ObjectSpace.trace_object_allocations_stop
+    ObjectSpace.trace_object_allocations_clear
 
     profile_and_start_gc
   end
@@ -76,4 +93,14 @@ class AllocationStats
     GC::Profiler.disable
   end
   private :profile_and_start_gc
+end
+
+if ENV["TRACE_PROCESS_ALLOCATIONS"]
+  $allocation_stats = AllocationStats.new
+
+  at_exit do
+    $allocation_stats.stop
+    puts "Object Allocation Report"
+    puts "------------------------"
+  end
 end
