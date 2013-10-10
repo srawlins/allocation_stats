@@ -12,10 +12,10 @@ require "rubygems"
 # interface to dig into the data and discover useful information.
 class AllocationStats
   # a convenience constant
-  Rubylibdir = RbConfig::CONFIG["rubylibdir"]
+  RUBYLIBDIR = RbConfig::CONFIG["rubylibdir"]
 
   # a convenience constant
-  GemDir = Gem.dir
+  GEMDIR = Gem.dir
 
   attr_accessor :gc_profiler_report
 

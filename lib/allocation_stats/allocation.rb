@@ -60,10 +60,10 @@ class AllocationStats
       case
       when @sourcefile[PWD]
         @sourcefile.sub(PWD, "<PWD>")
-      when @sourcefile[AllocationStats::Rubylibdir]
-        @sourcefile.sub(AllocationStats::Rubylibdir, "<RUBYLIBDIR>")
-      when @sourcefile[AllocationStats::GemDir]
-        @sourcefile.sub(AllocationStats::GemDir, "<GEMDIR>")
+      when @sourcefile[AllocationStats::RUBYLIBDIR]
+        @sourcefile.sub(AllocationStats::RUBYLIBDIR, "<RUBYLIBDIR>")
+      when @sourcefile[AllocationStats::GEMDIR]
+        @sourcefile.sub(AllocationStats::GEMDIR, "<GEMDIR>")
       else
         @sourcefile
       end
@@ -96,7 +96,7 @@ class AllocationStats
     #
     # Override Rubygems' Kernel#gem
     def gem
-      gem_regex = /#{AllocationStats::GemDir}#{File::SEPARATOR}
+      gem_regex = /#{AllocationStats::GEMDIR}#{File::SEPARATOR}
         gems#{File::SEPARATOR}
         (?<gem_name>[^#{File::SEPARATOR}]+)#{File::SEPARATOR}
       /x
@@ -119,7 +119,7 @@ class AllocationStats
       }.to_json
     end
 
-    def element_classes(classes)
+    private def element_classes(classes)
       if classes.size == 1
         classes.first
       elsif classes.size > 1 && classes.size < 4
@@ -128,6 +128,5 @@ class AllocationStats
         nil
       end
     end
-    private :element_classes
   end
 end

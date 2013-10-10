@@ -166,7 +166,7 @@ describe AllocationStats::AllocationsProxy do
         "{\"memsize\":0,\"file\":\"#{__FILE__}\",\"line\":170,\"class_plus\":\"String\"}]"
   end
 
-  it "should shorten paths of stuff in Rubylibdir" do
+  it "should shorten paths of stuff in RUBYLIBDIR" do
     stats = AllocationStats.new do
       y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
