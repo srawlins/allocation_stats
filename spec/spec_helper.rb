@@ -4,6 +4,7 @@
 require_relative "../lib/allocation_stats"
 require "yaml"
 require "yajl"
+require "pry"
 
 if RbConfig::CONFIG["MAJOR"].to_i < 2 || RbConfig::CONFIG["MINOR"].to_i < 1
   warn "Error: AllocationStats requires Ruby 2.1 or greater"

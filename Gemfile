@@ -9,5 +9,7 @@ end
 
 group :test do
   gem "rspec"
+  gem "pry"
+
   gem "yajl-ruby", "= 1.1.0"
 end
