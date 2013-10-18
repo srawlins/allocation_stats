@@ -119,7 +119,7 @@ class AllocationStats
       }.to_json
     end
 
-    private def element_classes(classes)
+    def element_classes(classes)
       if classes.size == 1
         classes.first
       elsif classes.size > 1 && classes.size < 4
@@ -128,5 +128,6 @@ class AllocationStats
         nil
       end
     end
+    private :element_classes
   end
 end

@@ -1,4 +1,3 @@
 * release first gem version
 * more in the README
 * binary
-* convert constants to SCREAMING_SNAKE_CASE in lib/allocation_stats.rb
