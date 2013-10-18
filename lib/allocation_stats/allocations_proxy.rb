@@ -79,13 +79,15 @@ class AllocationStats
       return self
     end
 
-    def sorted_by_size
+    def sort_by_size
       @mappers << Proc.new do |allocations|
         allocations.sort_by { |key, value| -value.size }
+                   .inject({}) { |hash, pair| hash[pair[0]] = pair[1]; hash }
       end
 
       self
     end
+    alias :sort_by_count :sort_by_size
 
     # Select allocations for which the {Allocation#sourcefile sourcefile}
     # includes `pattern`.
@@ -214,9 +216,12 @@ class AllocationStats
     def to_text(columns: DEFAULT_COLUMNS)
       resolved = to_a
 
-      if resolved.is_a? Array
+      # if resolved is an Array of Allocations
+      if resolved.is_a?(Array) && resolved.first.is_a?(Allocation)
         to_text_from_plain(resolved, columns: columns)
-      elsif resolved.is_a? Hash
+
+      # if resolved is a Hash (was grouped)
+      elsif resolved.is_a?(Hash)
         to_text_from_groups(resolved)
       end
     end
@@ -228,45 +233,52 @@ class AllocationStats
         (resolved.map { |a| attr.call(a).to_s.size } << columns[idx].to_s.size).max
       end
 
-      text = columns.each_with_index.map { |attr, idx|
+      text = []
+
+      text << columns.each_with_index.map { |attr, idx|
         attr.to_s.center(widths[idx])
-      }.join("  ").rstrip << "\n"
+      }.join("  ").rstrip
 
-      text << widths.map { |width|
-        "-" * width
-      }.join("  ") << "\n"
+      text << widths.map { |width| "-" * width }.join("  ")
 
-      text << resolved.map { |allocation|
+      text += resolved.map { |allocation|
         getters.each_with_index.map { |getter, idx|
           value = getter.call(allocation).to_s
           NUMERIC_COLUMNS.include?(columns[idx]) ? value.rjust(widths[idx]) : value.ljust(widths[idx])
-        }.join("  ").rstrip << "\n"
-      }.join("")
+        }.join("  ").rstrip
+      }
+
+      text.join("\n")
     end
     private :to_text_from_plain
 
     def to_text_from_groups(resolved)
       columns = @group_keys + ["count"]
+
+      keys = resolved.is_a?(Hash) ? resolved.keys : resolved.map(&:first)
       widths = columns.each_with_index.map do |column, idx|
-        (resolved.keys.map { |group| group[idx].to_s.size } << columns[idx].to_s.size).max
+        (keys.map { |group| group[idx].to_s.size } << columns[idx].to_s.size).max
       end
 
-      text = columns.each_with_index.map { |attr, idx|
+      text = []
+
+      text << columns.each_with_index.map { |attr, idx|
         attr.to_s.center(widths[idx])
-      }.join("  ").rstrip << "\n"
+      }.join("  ").rstrip
 
-      text << widths.map { |width|
-        "-" * width
-      }.join("  ") << "\n"
+      text << widths.map { |width| "-" * width }.join("  ")
 
-      text << resolved.map { |group, allocations|
+      text += resolved.map { |group, allocations|
         line = group.each_with_index.map { |attr, idx|
           NUMERIC_COLUMNS.include?(columns[idx]) ?
             attr.to_s.rjust(widths[idx]) :
             attr.to_s.ljust(widths[idx])
         }.join("  ")
-        line << "  #{allocations.size.to_s.rjust(5)}\n"
-      }.join("")
+
+        line << "  " + allocations.size.to_s.rjust(5)
+      }
+
+      text.join("\n")
     end
     private :to_text_from_groups
   end

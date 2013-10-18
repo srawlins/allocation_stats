@@ -103,6 +103,7 @@ describe AllocationStats::AllocationsProxy do
 
     results = stats.allocations.group_by(:class_path, :method_id, :class).all
     results.keys.size.should == 3
+
     # Things allocated inside rspec describe and it blocks have nil as the
     # method_id.
     results.keys.should include([nil, nil, String])
@@ -241,59 +242,93 @@ describe AllocationStats::AllocationsProxy do
     classes.should include(String)
   end
 
-  it "should output to fixed-width text correctly" do
-    stats = AllocationStats.new { MyClass.new.my_method }
+  context "to_text" do
+    before do
+      @stats = AllocationStats.new { MyClass.new.my_method }
+      @line = __LINE__ - 1
+    end
 
-    line = __LINE__ - 2
-    text = stats.allocations.to_text
-    spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
+    it "should output to fixed-width text correctly" do
+      text = @stats.allocations.to_text
+      spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
-    expect(text).to include("                                             sourcefile                                                sourceline  class_path  method_id  memsize   class")
-    expect(text).to include("-----------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------")
-    expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method      192  Hash")
-    expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method        0  String")
-    expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  Class       new              0  MyClass")
+      expect(text).to include("                                             sourcefile                                                sourceline  class_path  method_id  memsize   class")
+      expect(text).to include("-----------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------")
+      expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method      192  Hash")
+      expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method        0  String")
+      expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{@line}  Class       new              0  MyClass")
+    end
+
+    it "should output to fixed-width text with custom columns correctly" do
+      text = @stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class])
+      spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
+
+      expect(text).to include("                                             sourcefile                                                sourceline   class")
+      expect(text).to include("#{"-" * MAX_PATH_LENGTH}  ----------  -------")
+      expect(text).to include("#{spec_helper_plus_line}  Hash")
+      expect(text).to include("#{spec_helper_plus_line}  String")
+      expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{@line}  MyClass")
+    end
+
+    it "should output to fixed-width text with custom columns and aliased paths correctly" do
+      text = @stats.allocations(alias_paths: true).to_text(columns: [:sourcefile, :sourceline, :class])
+      spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                      #{MyClass::MY_METHOD_BODY_LINE}"
+
+      expect(text).to include("                     sourcefile                        sourceline   class")
+      expect(text).to include("-----------------------------------------------------  ----------  -------")
+      expect(text).to include("#{spec_helper_plus_line}  Hash")
+      expect(text).to include("#{spec_helper_plus_line}  String")
+      expect(text).to include("<PWD>/spec/allocation_stats/allocations_proxy_spec.rb         #{@line}  MyClass")
+    end
+
+    it "should output to fixed-width text after group_by correctly" do
+      text = @stats.allocations(alias_paths: true).group_by(:sourcefile, :sourceline, :class).to_text
+      spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                      #{MyClass::MY_METHOD_BODY_LINE}"
+
+      expect(text).to include("                     sourcefile                        sourceline   class   count\n")
+      expect(text).to include("-----------------------------------------------------  ----------  -------  -----\n")
+      expect(text).to include("#{spec_helper_plus_line}  Hash         1\n")
+      expect(text).to include("#{spec_helper_plus_line}  String       2\n")
+      expect(text).to include("<PWD>/spec/allocation_stats/allocations_proxy_spec.rb         #{@line}  MyClass      1")
+    end
   end
 
-  it "should output to fixed-width text with custom columns correctly" do
-    stats = AllocationStats.new { MyClass.new.my_method }
+  context "sorting" do
+    before do
+      @stats = AllocationStats.new do
+        ary = []
+        4.times do
+          ary << [1,2,3,4,5]
+        end
+        str_1 = "string"; str_2 = "strang"
+      end
+      @lines = [__LINE__ - 6, __LINE__ - 4, __LINE__ - 2]
+    end
 
-    line = __LINE__ - 2
-    text = stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class])
-    spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
+    it "should sort Allocations that have not been grouped" do
+      results = @stats.allocations.group_by(:sourcefile, :sourceline, :class).sort_by_count.all
 
-    expect(text).to include("                                             sourcefile                                                sourceline   class")
-    expect(text).to include("#{"-" * MAX_PATH_LENGTH}  ----------  -------")
-    expect(text).to include("#{spec_helper_plus_line}  Hash")
-    expect(text).to include("#{spec_helper_plus_line}  String")
-    expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{line}  MyClass")
-  end
+      expect(results.keys[0]).to include(@lines[1])
+      expect(results.keys[1]).to include(@lines[2])
+      expect(results.keys[2]).to include(@lines[0])
 
-  it "should output to fixed-width text with custom columns and aliased paths correctly" do
-    stats = AllocationStats.new { MyClass.new.my_method }
+      expect(results.values[0].size).to eq(4)
+      expect(results.values[1].size).to eq(2)
+      expect(results.values[2].size).to eq(1)
+    end
 
-    line = __LINE__ - 2
-    text = stats.allocations(alias_paths: true).to_text(columns: [:sourcefile, :sourceline, :class])
-    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                      #{MyClass::MY_METHOD_BODY_LINE}"
+    it "should output to fixed-width text after group_by..sort_by_count correctly" do
+      text = @stats.allocations(alias_paths: true)
+                   .group_by(:sourcefile, :sourceline, :class)
+                   .sort_by_count
+                   .to_text.split("\n")
+      spec_file = "<PWD>/spec/allocation_stats/allocations_proxy_spec.rb       "
 
-    expect(text).to include("                     sourcefile                        sourceline   class")
-    expect(text).to include("-----------------------------------------------------  ----------  -------")
-    expect(text).to include("#{spec_helper_plus_line}  Hash")
-    expect(text).to include("#{spec_helper_plus_line}  String")
-    expect(text).to include("<PWD>/spec/allocation_stats/allocations_proxy_spec.rb         #{line}  MyClass")
-  end
-
-  it "should output to fixed-width text after group_by correctly" do
-    stats = AllocationStats.new { MyClass.new.my_method }
-
-    line = __LINE__ - 2
-    text = stats.allocations(alias_paths: true).group_by(:sourcefile, :sourceline, :class).to_text
-    spec_helper_plus_line = "<PWD>/spec/spec_helper.rb                                      #{MyClass::MY_METHOD_BODY_LINE}"
-
-    expect(text).to include("                     sourcefile                        sourceline   class   count\n")
-    expect(text).to include("-----------------------------------------------------  ----------  -------  -----\n")
-    expect(text).to include("#{spec_helper_plus_line}  Hash         1\n")
-    expect(text).to include("#{spec_helper_plus_line}  String       2\n")
-    expect(text).to include("<PWD>/spec/allocation_stats/allocations_proxy_spec.rb         #{line}  MyClass      1\n")
+      expect(text[0]).to eq("                     sourcefile                        sourceline  class   count")
+      expect(text[1]).to eq("-----------------------------------------------------  ----------  ------  -----")
+      expect(text[2]).to eq("#{spec_file}  #{@lines[1]}  Array       4")
+      expect(text[3]).to eq("#{spec_file}  #{@lines[2]}  String      2")
+      expect(text[4]).to eq("#{spec_file}  #{@lines[0]}  Array       1")
+    end
   end
 end
