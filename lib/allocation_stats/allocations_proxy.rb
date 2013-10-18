@@ -226,6 +226,10 @@ class AllocationStats
       end
     end
 
+    def to_json
+      to_a.to_json
+    end
+
     def to_text_from_plain(resolved, columns: DEFAULT_COLUMNS)
       getters = attribute_getters(columns)
 

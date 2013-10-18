@@ -287,9 +287,41 @@ describe AllocationStats::AllocationsProxy do
 
       expect(text).to include("                     sourcefile                        sourceline   class   count\n")
       expect(text).to include("-----------------------------------------------------  ----------  -------  -----\n")
-      expect(text).to include("#{spec_helper_plus_line}  Hash         1\n")
-      expect(text).to include("#{spec_helper_plus_line}  String       2\n")
+      expect(text).to include("#{spec_helper_plus_line}  Hash         1")
+      expect(text).to include("#{spec_helper_plus_line}  String       2")
       expect(text).to include("<PWD>/spec/allocation_stats/allocations_proxy_spec.rb         #{@line}  MyClass      1")
+    end
+  end
+
+  context "to_json" do
+    before do
+      @stats = AllocationStats.new { MyClass.new.my_method }
+      @line = __LINE__ - 1
+    end
+
+    it "should output to json correctly" do
+      json = @stats.allocations.to_json
+      expect { Yajl::Parser.parse(json) }.to_not raise_error
+    end
+
+    it "should output to json correctly" do
+      allocations = @stats.allocations.all
+      json = allocations.to_json
+      parsed = Yajl::Parser.parse(json)
+
+      first = {
+        "file" => "<PWD>/spec/spec_helper.rb",
+        "file (raw)" =>  "/usr/local/google/home/srawlins/code/allocation_stats/spec/spec_helper.rb",
+        "line" => 20,
+        "class_path" => "MyClass",
+        "method_id" => :my_method.to_s,
+        "memsize" => 192,
+        "class" => "Hash",
+        "class_plus" => "Hash"
+      }
+
+      expect(parsed.size).to be(4)
+      expect(parsed.any? { |allocation| allocation == first } ).to be_true
     end
   end
 

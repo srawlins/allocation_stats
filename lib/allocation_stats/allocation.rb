@@ -106,7 +106,7 @@ class AllocationStats
 
     # Convert into a JSON string, which can be used in rack-allocation_stats's
     # interactive mode.
-    def to_json
+    def as_json
       {
         "memsize"      => @memsize,
         "class_path"   => @class_path,
@@ -116,7 +116,11 @@ class AllocationStats
         "line"         => @sourceline,
         "class"        => @object.class.name,
         "class_plus"   => class_plus
-      }.to_json
+      }
+    end
+
+    def to_json(*a)
+      as_json.to_json(*a)
     end
 
     def element_classes(classes)

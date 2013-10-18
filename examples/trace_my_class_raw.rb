@@ -8,4 +8,4 @@ end
 require File.join(__dir__, "..", "lib", "allocation_stats")
 
 stats = AllocationStats.new { MyClass.new.my_method }
-puts stats.allocations.to_text
+puts stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class_path, :method_id, :class])
