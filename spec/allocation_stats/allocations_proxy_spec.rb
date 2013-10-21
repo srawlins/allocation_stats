@@ -9,7 +9,7 @@ describe AllocationStats::AllocationsProxy do
   it "should track new objects by path" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       new_string     = "stringy string"
       another_string = "another string"
     end
@@ -25,7 +25,7 @@ describe AllocationStats::AllocationsProxy do
   it "should track new objects by path" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       new_string     = "stringy string"
       another_string = "another string"
       a_foreign_string = allocate_a_string_from_spec_helper
@@ -40,7 +40,7 @@ describe AllocationStats::AllocationsProxy do
   it "should track new objects by path and class" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       new_string     = "stringy string"
       another_string = "another string"
       an_array       = [1,1,2,3,5,8,13,21,34,55]
@@ -54,7 +54,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should track new objects by path and class_name (Array with 1x type)" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       square_groups = []
       10.times do |i|
         square_groups << [(4*i+0)**2, (4*i+1)**2, (4*i+2)**2, (4*i+3)**2]
@@ -68,7 +68,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should track new objects by path and class_name (Array with 2-3x type)" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       two_classes = [1,2,3,"a","b","c"]
       three_classes = [1,1.0,"1"]
     end
@@ -80,7 +80,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should track new objects by path and class_name (Arrays with same size)" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       ary = []
       10.times do
         ary << [1,2,3,4,5]
@@ -94,7 +94,7 @@ describe AllocationStats::AllocationsProxy do
   it "should track new objects by class_path, method_id and class" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       new_string       = "stringy string"
       another_string   = "another string"
       an_array         = [1,1,2,3,5,8,13,21,34,55]
@@ -112,7 +112,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should track new bytes" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       an_array       = [1,1,2,3,5,8,13,21,34,55]
     end
 
@@ -122,7 +122,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should track new bytes by path and class" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       new_string     = "stringy string"                      # 1: String from here
       an_array       = [1,1,2,3,5,8,13,21,34,55]             # 2: Array from here
       a_foreign_string = allocate_a_string_from_spec_helper  # 3: String from spec_helper
@@ -140,7 +140,7 @@ describe AllocationStats::AllocationsProxy do
   it "should track new allocations in pwd" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       new_string     = "stringy string"           # 1: String from here
       another_string = "another string"
       an_array       = [1,1,2,3,5,8,13,21,34,55]  # 2: Array from here
@@ -157,7 +157,7 @@ describe AllocationStats::AllocationsProxy do
 
   it "should pass itself to Yajl::Encoder.encode correctly" do
     pending "I don't know why this isn't passing, but it's not worth worrying about now"
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       new_hash = {0 => "foo", 1 => "bar"}
     end
 
@@ -168,7 +168,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should shorten paths of stuff in RUBYLIBDIR" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -177,7 +177,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should shorten paths of stuff in gems" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -186,7 +186,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should track new objects by gem" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -196,7 +196,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should be able to filter to just anything from pwd" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -205,7 +205,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should be able to filter to just anything from pwd, even if from is specified before group_by" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -214,7 +214,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should be able to filter to just one path" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -223,7 +223,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should be able to filter to just one path" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -232,7 +232,7 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "should be able to filter to just one path" do
-    stats = AllocationStats.new do
+    stats = AllocationStats.new.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end
 
@@ -244,7 +244,7 @@ describe AllocationStats::AllocationsProxy do
 
   context "to_text" do
     before do
-      @stats = AllocationStats.new { MyClass.new.my_method }
+      @stats = AllocationStats.new.trace { MyClass.new.my_method }
       @line = __LINE__ - 1
     end
 
@@ -295,7 +295,7 @@ describe AllocationStats::AllocationsProxy do
 
   context "to_json" do
     before do
-      @stats = AllocationStats.new { MyClass.new.my_method }
+      @stats = AllocationStats.new.trace { MyClass.new.my_method }
       @line = __LINE__ - 1
     end
 
@@ -327,7 +327,7 @@ describe AllocationStats::AllocationsProxy do
 
   context "sorting" do
     before do
-      @stats = AllocationStats.new do
+      @stats = AllocationStats.new.trace do
         ary = []
         4.times do
           ary << [1,2,3,4,5]

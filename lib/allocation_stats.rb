@@ -8,7 +8,7 @@ require_relative "allocation_stats/allocations_proxy"
 require "rubygems"
 
 # Container for an aggregation of object allocation data. Pass a block to
-# {#initialize AllocationStats.new()}. Then use the AllocationStats object's public
+# {#trace AllocationStats.new.trace}. Then use the AllocationStats object's public
 # interface to dig into the data and discover useful information.
 class AllocationStats
   # a convenience constant
@@ -29,6 +29,9 @@ class AllocationStats
   attr_reader :new_allocations
 
   def initialize
+  end
+
+  def trace
     GC.start
     GC.disable
 
@@ -51,6 +54,8 @@ class AllocationStats
     else
       ObjectSpace.trace_object_allocations_start
     end
+
+    return self
   end
 
   def collect_new_allocations
@@ -96,7 +101,7 @@ class AllocationStats
 end
 
 if ENV["TRACE_PROCESS_ALLOCATIONS"]
-  $allocation_stats = AllocationStats.new
+  $allocation_stats = AllocationStats.new.trace
 
   at_exit do
     $allocation_stats.stop
