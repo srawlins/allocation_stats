@@ -21,4 +21,15 @@ class MyClass
   end
 
   MY_METHOD_BODY_LINE = __LINE__ - 3
+
+  # This method allocates a different number of objects each call:
+  # 1st call: 1x Array, 1x String
+  # 2nd call;           2x Strings
+  # 3rd call;           4x Strings
+  # 4th call;           8x Strings
+  def memoizing_method
+    @c ||= []
+
+    (@c.size + 1).times { @c << "string" }
+  end
 end

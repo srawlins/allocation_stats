@@ -57,4 +57,18 @@ describe AllocationStats do
     stats.new_allocations.class.should be Array
     stats.new_allocations.size.should == 3
   end
+
+  it "should only track new objects" do
+    existing_array = [1,2,3,4,5]
+
+    my_instance = MyClass.new
+
+    stats = AllocationStats.new(burn: 3).trace do
+      # this method instantiates 2**(n-1) Strings on the n'th call
+      my_instance.memoizing_method
+    end
+
+    stats.new_allocations.class.should be Array
+    stats.new_allocations.size.should == 8
+  end
 end

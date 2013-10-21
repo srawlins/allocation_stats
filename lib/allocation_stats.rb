@@ -17,6 +17,14 @@ class AllocationStats
   # a convenience constant
   GEMDIR = Gem.dir
 
+  # @!attribute [rw] burn
+  # @return [Fixnum]
+  # burn count for block tracing. Defaults to 0. When called with a block,
+  # #trace will yield the block @burn-times before actually tracing the object
+  # allocations. This offers the benefit of pre-memoizing objects, and loading
+  # any required Ruby files before tracing.
+  attr_accessor :burn
+
   attr_accessor :gc_profiler_report
 
   # @!attribute [r] new_allocations
@@ -28,7 +36,8 @@ class AllocationStats
   # objects, than this plain Array object.
   attr_reader :new_allocations
 
-  def initialize
+  def initialize(burn: 0)
+    @burn = burn
   end
 
   def self.trace(&block)
@@ -36,7 +45,17 @@ class AllocationStats
     allocation_stats.trace(&block)
   end
 
-  def trace
+  def trace(&block)
+    if block_given?
+      trace_block(&block)
+    else
+      start
+    end
+  end
+
+  def trace_block
+    @burn.times { yield }
+
     GC.start
     GC.disable
 
@@ -47,18 +66,29 @@ class AllocationStats
       @existing_object_ids[object.object_id / 1000] << object.object_id
     end
 
-    if block_given?
-      ObjectSpace.trace_object_allocations {
-        yield
-      }
+    ObjectSpace.trace_object_allocations {
+      yield
+    }
 
-      collect_new_allocations
-      ObjectSpace.trace_object_allocations_clear
+    collect_new_allocations
+    ObjectSpace.trace_object_allocations_clear
+    profile_and_start_gc
 
-      profile_and_start_gc
-    else
-      ObjectSpace.trace_object_allocations_start
+    return self
+  end
+
+  def start
+    GC.start
+    GC.disable
+
+    @existing_object_ids = {}
+
+    ObjectSpace.each_object.to_a.each do |object|
+      @existing_object_ids[object.object_id / 1000] ||= []
+      @existing_object_ids[object.object_id / 1000] << object.object_id
     end
+
+    ObjectSpace.trace_object_allocations_start
 
     return self
   end
@@ -77,10 +107,8 @@ class AllocationStats
 
   def stop
     collect_new_allocations
-
     ObjectSpace.trace_object_allocations_stop
     ObjectSpace.trace_object_allocations_clear
-
     profile_and_start_gc
   end
 
