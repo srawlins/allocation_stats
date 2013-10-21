@@ -31,6 +31,11 @@ class AllocationStats
   def initialize
   end
 
+  def self.trace(&block)
+    allocation_stats = AllocationStats.new
+    allocation_stats.trace(&block)
+  end
+
   def trace
     GC.start
     GC.disable

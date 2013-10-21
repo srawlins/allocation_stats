@@ -14,7 +14,7 @@ describe AllocationStats do
   it "should only track new objects" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new.trace do
+    stats = AllocationStats.trace do
       new_array = [1,2,3,4,5]
     end
 
@@ -25,7 +25,7 @@ describe AllocationStats do
   it "should only track new objects, non-block mode" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new.trace
+    stats = AllocationStats.trace
     new_array = [1,2,3,4,5]
     stats.stop
 
@@ -33,20 +33,22 @@ describe AllocationStats do
     stats.new_allocations.size.should == 1
   end
 
-  it "should only track new objects; Hash String count twice :(" do
+  it "should only track new objects; String keys in Hashes count twice :(" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new.trace do
+    stats = AllocationStats.trace do
       new_hash = {"foo" => "bar", "baz" => "quux"}
     end
 
     stats.new_allocations.size.should == 7
   end
 
-  it "should only track new objects" do
+  it "should only track new objects, using instance method" do
     existing_array = [1,2,3,4,5]
 
-    stats = AllocationStats.new.trace do
+    stats = AllocationStats.new
+
+    stats.trace do
       new_object = Object.new
       new_array  = [4]
       new_string = "yarn"
