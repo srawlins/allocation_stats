@@ -7,5 +7,5 @@ end
 
 require File.join(__dir__, "..", "lib", "allocation_stats")
 
-stats = AllocationStats.new { MyClass.new.my_method }
+stats = AllocationStats.trace { MyClass.new.my_method }
 puts stats.allocations.group_by(:sourcefile, :sourceline, :class).to_text

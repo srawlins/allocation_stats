@@ -15,7 +15,7 @@ Tabular Output examples
 -----------------------
 
 It is very easy to get some simple statistics out of AllocationStats.
-Wrap some code with `AllocationStats.new` and print out a listing of all of the
+Wrap some code with `AllocationStats.trace` and print out a listing of all of the
 new object allocation information.
 
 As an example, lets look at `examples/my_class.rb`:
@@ -32,7 +32,7 @@ And use that class in a bit of ad-hoc Ruby:
 
 ```
 $ ruby -r ./lib/allocation_stats -r ./allocation
-stats = AllocationStats.new { MyClass.new.my_method }
+stats = AllocationStats.trace { MyClass.new.my_method }
 puts stats.allocations(alias_paths: true).to_text
 ^D
     sourcefile       sourceline  class_path  method_id  memsize   class
@@ -55,7 +55,7 @@ count. Below, we group allocations by source file, source line, and class:
 
 ```
 $ ruby -r ./lib/allocation_stats -r ./allocation
-stats = AllocationStats.new { MyClass.new.my_method }
+stats = AllocationStats.trace { MyClass.new.my_method }
 puts stats.allocations(alias_paths: true).group_by(:sourcefile, :sourceline, :class).to_text
 ^D
     sourcefile       sourceline   class   count
@@ -105,7 +105,7 @@ Example from the specs
 ```ruby
 existing_array = [1,2,3,4,5]
 
-stats = AllocationStats.new do
+stats = AllocationStats.trace do
   new_string     = "stringy string"
   another_string = "another string"
   an_array       = [1,1,2,3,5,8,13,21,34,55]
@@ -184,7 +184,7 @@ Let's look at this example a little slower. Firstly, let's look at how we
 collect object allocations using AllocationStats:
 
 ```ruby
-stats = AllocationStats.new do
+stats = AllocationStats.trace do
   new_string     = "stringy string"
   another_string = "another string"
   an_array       = [1,1,2,3,5,8,13,21,34,55]
@@ -192,7 +192,7 @@ stats = AllocationStats.new do
 end
 ```
 
-Stats are collected by running a block through `AllocationStats.new`. This is
+Stats are collected by running a block through `AllocationStats.trace`. This is
 largely just a thin wrapper around `trace_object_allocations()`. You are handed
 back your new AllocationStats, which essentially just holds all of the
 allocation information, accessible via `#allocations`. Let's look at the next
@@ -219,7 +219,7 @@ Let's look at an example with more varied allocations, using Ruby's Psych. This
 one is found in `examples/trace_psych_keys.rb`:
 
 ```ruby
-stats = AllocationStats.new do
+stats = AllocationStats.trace do
   y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
 end
 
@@ -266,7 +266,7 @@ Again, it is difficult to find useful information from these results without
 aggregating. Let's do that (`examples/trace_psych_group_by`):
 
 ```ruby
-stats = AllocationStats.new do
+stats = AllocationStats.trace do
   y = YAML.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
 end
 
