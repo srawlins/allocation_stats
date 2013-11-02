@@ -182,7 +182,7 @@ describe AllocationStats::AllocationsProxy do
     end
 
     files = stats.allocations(alias_paths: true).group_by(:sourcefile, :class).all.keys.map(&:first)
-    files.should include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
+    files.should include("<GEM:yajl-ruby-1.1.0>/lib/yajl.rb")
   end
 
   it "should track new objects by gem" do
@@ -219,7 +219,7 @@ describe AllocationStats::AllocationsProxy do
     end
 
     files = stats.allocations(alias_paths: true).group_by(:sourcefile, :class).from("yajl.rb").all.keys.map(&:first)
-    files.should include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
+    files.should include("<GEM:yajl-ruby-1.1.0>/lib/yajl.rb")
   end
 
   it "should be able to filter to just one path" do

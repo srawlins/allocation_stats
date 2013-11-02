@@ -63,7 +63,7 @@ class AllocationStats
       when @sourcefile[AllocationStats::RUBYLIBDIR]
         @sourcefile.sub(AllocationStats::RUBYLIBDIR, "<RUBYLIBDIR>")
       when @sourcefile[AllocationStats::GEMDIR]
-        @sourcefile.sub(AllocationStats::GEMDIR, "<GEMDIR>")
+        @sourcefile.sub(/#{AllocationStats::GEMDIR}\/gems\/([^\/]+)\//, '<GEM:\1>/')
       else
         @sourcefile
       end
