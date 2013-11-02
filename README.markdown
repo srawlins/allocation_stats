@@ -311,6 +311,16 @@ puts stats.allocations(alias_paths: true).group_by(:sourcefile, :class).to_text
 <RUBYLIBDIR>/psych/scalar_scanner.rb      MatchData                                 2
 ```
 
+Burn One
+========
+
+If you find a lot of allocations in `kernel_require.rb` or a lot of allocations
+of `RubyVM::InstructuinSequences`, you can "burn" one or more calls to your
+block with the `burn` keyword. For example:
+`AllocationStats.new(burn: 3).trace{ ... }` will first call the block 3 times,
+without tracing allocations, before calling the block a 4th time, tracing
+allocations.
+
 The API
 =======
 
