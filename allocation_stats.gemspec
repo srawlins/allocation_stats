@@ -3,7 +3,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "allocation_stats"
-  spec.version       = "0.1.0"
+  spec.version       = "0.1.1"
   spec.authors       = ["Sam Rawlins"]
   spec.email         = ["sam.rawlins@gmail.com"]
   spec.license       = "Apache v2"
