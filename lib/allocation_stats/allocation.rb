@@ -119,6 +119,8 @@ class AllocationStats
       }
     end
 
+    # Convert into a JSON string, which can be used in rack-allocation_stats's
+    # interactive mode.
     def to_json(*a)
       as_json.to_json(*a)
     end

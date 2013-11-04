@@ -203,14 +203,15 @@ line to see how we can pull useful information out:
 ```
 
 If you are used to chaining ActiveRecord relations, some of this might look
-familiar to you: `stats.allocations` will hand you back an {AllocationsProxy}
-object, designed to hold the various transformations that you wish to run the
-allocations through.  AllocationsProxy uses the Command pattern to store up
-transformations before they will actually be applied. In this example, we only
-make one transformation: `group_by(:@sourcefile, :class)`.  This method just
-returns the same AllocationsProxy object back, so that transformations can be
-chained. The final call that will execute the transformations is `#to_a`
-(aliased to `#all`, just like ActiveRecord).
+familiar to you: `stats.allocations` will hand you back an
+{AllocationStats::AllocationsProxy} object, designed to hold the various
+transformations that you wish to run the allocations through. AllocationsProxy
+uses the Command pattern to store up transformations before they will actually
+be applied. In this example, we only make one transformation:
+`group_by(:@sourcefile, :class)`.  This method just returns the same
+AllocationsProxy object back, so that transformations can be chained. The final
+call that will execute the transformations is `#to_a` (aliased to `#all`, just
+like ActiveRecord).
 
 Psych Example
 -------------

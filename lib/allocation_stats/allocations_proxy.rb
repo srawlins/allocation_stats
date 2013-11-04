@@ -50,6 +50,8 @@ class AllocationStats
       @alias_paths = alias_paths
     end
 
+    # Apply all transformations to the contained list of Allocations. This is
+    # aliased as `:all`.
     def to_a
       results = @allocations
 
@@ -69,6 +71,9 @@ class AllocationStats
     end
     alias :all :to_a
 
+    # If a value is passed in, @alias_paths will be set to this value, and the
+    # AllocationStats object will be returned. If no value is passed in, this
+    # will return the @alias_paths.
     def alias_paths(value = nil)
       # reader
       return @alias_paths if value.nil?
@@ -178,7 +183,8 @@ class AllocationStats
     end
     private :attribute_getters
 
-    # Map to bytes via {Allocation#memsize #memsize}. This is done in one of two ways:
+    # Map to bytes via {Allocation#memsize #memsize}. This is done in one of
+    # two ways:
     #
     # * If the current result set is an Array, then this transform just maps
     #   each Allocation to its `#memsize`.
@@ -226,6 +232,7 @@ class AllocationStats
       end
     end
 
+    # Resolve all transformations, and convert the resultant Array to JSON.
     def to_json
       to_a.to_json
     end

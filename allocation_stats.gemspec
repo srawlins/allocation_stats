@@ -3,9 +3,10 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "allocation_stats"
-  spec.version       = "0.1.1"
+  spec.version       = "0.1.2"
   spec.authors       = ["Sam Rawlins"]
   spec.email         = ["sam.rawlins@gmail.com"]
+  spec.homepage      = "https://github.com/srawlins/allocation_stats"
   spec.license       = "Apache v2"
   spec.summary       = "Tooling for tracing object allocations in Ruby 2.1"
   spec.description   = "Tooling for tracing object allocations in Ruby 2.1"
