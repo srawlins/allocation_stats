@@ -139,6 +139,15 @@ class AllocationStats
       self
     end
 
+    # Group allocations by one or more attributes, that is, a list of symbols.
+    # Commonly, you might want to group allocations by:
+    #
+    # * :sourcefile, :sourceline, :class
+    # * :sourcefile, :method_id, :class
+    # * :classpath, :method_id, :class
+    #
+    # In this case, `:class` is the class of the allocated object (as opposed
+    # to `:classpath`, the classpath where the allocation occured).
     def group_by(*args)
       @group_keys = args
 
@@ -237,6 +246,9 @@ class AllocationStats
       to_a.to_json
     end
 
+    # Return tabular information about the un-grouped list of Allocations.
+    #
+    # @private
     def to_text_from_plain(resolved, columns: DEFAULT_COLUMNS)
       getters = attribute_getters(columns)
 
@@ -263,6 +275,9 @@ class AllocationStats
     end
     private :to_text_from_plain
 
+    # Return tabular information about the grouped Allocations.
+    #
+    # @private
     def to_text_from_groups(resolved)
       columns = @group_keys + ["count"]
 
