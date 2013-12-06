@@ -175,9 +175,9 @@ class AllocationStats
           lambda { |allocation| allocation.sourcefile(@alias_paths) }
         elsif Allocation::HELPERS.include?(faux) ||
               Allocation::ATTRIBUTES.include?(faux)
-          lambda { |allocation| allocation.send(faux) }
+          lambda { |allocation| allocation.__send__(faux) }
         else
-          lambda { |allocation| allocation.object.send(faux) }
+          lambda { |allocation| allocation.object.__send__(faux) }
         end
       end
     end

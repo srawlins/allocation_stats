@@ -2,6 +2,7 @@
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
 require "objspace"
+require_relative "allocation_stats/core_ext/basic_object"
 require_relative "allocation_stats/allocation"
 require_relative "allocation_stats/allocations_proxy"
 
@@ -62,8 +63,8 @@ class AllocationStats
     @existing_object_ids = {}
 
     ObjectSpace.each_object.to_a.each do |object|
-      @existing_object_ids[object.object_id / 1000] ||= []
-      @existing_object_ids[object.object_id / 1000] << object.object_id
+      @existing_object_ids[object.__id__ / 1000] ||= []
+      @existing_object_ids[object.__id__ / 1000] << object.__id__
     end
 
     ObjectSpace.trace_object_allocations {
@@ -84,8 +85,8 @@ class AllocationStats
     @existing_object_ids = {}
 
     ObjectSpace.each_object.to_a.each do |object|
-      @existing_object_ids[object.object_id / 1000] ||= []
-      @existing_object_ids[object.object_id / 1000] << object.object_id
+      @existing_object_ids[object.__id__ / 1000] ||= []
+      @existing_object_ids[object.__id__ / 1000] << object.__id__
     end
 
     ObjectSpace.trace_object_allocations_start
@@ -98,8 +99,8 @@ class AllocationStats
     ObjectSpace.each_object.to_a.each do |object|
       next if ObjectSpace.allocation_sourcefile(object).nil?
       next if ObjectSpace.allocation_sourcefile(object) == __FILE__
-      next if @existing_object_ids[object.object_id / 1000] &&
-              @existing_object_ids[object.object_id / 1000].include?(object.object_id)
+      next if @existing_object_ids[object.__id__ / 1000] &&
+              @existing_object_ids[object.__id__ / 1000].include?(object.__id__)
 
       @new_allocations << Allocation.new(object)
     end
