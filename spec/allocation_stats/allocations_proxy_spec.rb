@@ -53,6 +53,22 @@ describe AllocationStats::AllocationsProxy do
     results.keys.should include([__FILE__, Array])
   end
 
+  it "should track new BasicObjects" do
+    class BO < BasicObject; end
+
+    stats = AllocationStats.trace do
+      bo = BO.new
+    end
+
+    results = stats.allocations.group_by(:sourcefile).all
+    expect(results.class).to be(Hash)
+    expect(results.keys.size).to eq(1)
+    expect(results.keys.first).to eq([__FILE__])
+    expect(results[[__FILE__]].class).to eq(Array)
+    expect(results[[__FILE__]].size).to eq(1)
+    expect(results[[__FILE__]].first.object.class).to be(BO)
+  end
+
   it "should track new objects by path and class_name (Array with 1x type)" do
     stats = AllocationStats.trace do
       square_groups = []
