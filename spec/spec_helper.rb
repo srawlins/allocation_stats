@@ -1,6 +1,9 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
+require "simplecov"
+SimpleCov.start
+
 require_relative "../lib/allocation_stats"
 require "yaml"
 require "yajl"

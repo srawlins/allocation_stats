@@ -328,7 +328,7 @@ describe AllocationStats::AllocationsProxy do
       first = {
         "file" => "<PWD>/spec/spec_helper.rb",
         "file (raw)" =>  "/usr/local/google/home/srawlins/code/allocation_stats/spec/spec_helper.rb",
-        "line" => 20,
+        "line" => 23,
         "class_path" => "MyClass",
         "method_id" => :my_method.to_s,
         "memsize" => 192,
