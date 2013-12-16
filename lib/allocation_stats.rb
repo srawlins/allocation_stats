@@ -39,6 +39,9 @@ class AllocationStats
 
   def initialize(burn: 0)
     @burn = burn
+    # Copying ridiculous workaround from:
+    # https://github.com/ruby/ruby/commit/7170baa878ac0223f26fcf8c8bf25492415e6eaa
+    Class.name
   end
 
   def self.trace(&block)
