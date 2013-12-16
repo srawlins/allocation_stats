@@ -1,3 +1,8 @@
+v0.1.3
+
+* Fixed: BasicObjects can be tracked; fixes #1
+* Added: much more documentation: up to 83%
+
 v0.1.2
 
 * Added: `homepage` in the gemspec

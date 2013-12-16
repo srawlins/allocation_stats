@@ -78,6 +78,9 @@ class AllocationStats
     return self
   end
 
+  # Begin tracing object allocations. Tracing must be stopped with
+  # AllocationStats#stop. Garbage collection is disabled while tracing is
+  # enabled.
   def start
     GC.start
     GC.disable
@@ -106,6 +109,7 @@ class AllocationStats
     end
   end
 
+  # Stop tracing object allocations that was started with AllocationStats#start.
   def stop
     collect_new_allocations
     ObjectSpace.trace_object_allocations_stop

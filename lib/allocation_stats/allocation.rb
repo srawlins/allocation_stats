@@ -4,6 +4,7 @@
 require "json"
 
 class AllocationStats
+  # Information about an individual allocation is captured in this class.
   class Allocation
     # a convenience constants
     PWD = Dir.pwd
@@ -77,6 +78,16 @@ class AllocationStats
       alias_path ? sourcefile_alias : @sourcefile
     end
 
+    # Returns class name, plus, for Arrays, extended information. When all of
+    # the elements of the Array are instances of a total of three or fewer
+    # classes, then those classes are listed in brackets. For example:
+    #
+    # @example Array with only Fixnum and Bignum elements
+    #   allocation.class_plus  #=> "Array<Fixnum,Bignum>"
+    # @example Array with elements of class A, B, C, and D
+    #   allocation.class_plus  #=> "Array"
+    # @example String (not an Array)
+    #   allocation.class_plus  #=> "String"
     def class_plus
       case @object
       when Array
