@@ -2,6 +2,7 @@ v0.1.3
 
 * Fixed: BasicObjects can be tracked; fixes #1
 * Added: much more documentation: up to 83%
+* Fixed: Working with new frozen String keys
 
 v0.1.2
 
