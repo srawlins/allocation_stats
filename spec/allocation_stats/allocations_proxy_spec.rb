@@ -268,8 +268,8 @@ describe AllocationStats::AllocationsProxy do
       text = @stats.allocations.to_text
       spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
-      expect(text).to include("                                             sourcefile                                                sourceline  class_path  method_id  memsize   class")
-      expect(text).to include("-----------------------------------------------------------------------------------------------------  ----------  ----------  ---------  -------  -------")
+      expect(text).to include("#{"sourcefile".center(MAX_PATH_LENGTH)}  sourceline  class_path  method_id  memsize   class")
+      expect(text).to include("#{"-" * MAX_PATH_LENGTH}  ----------  ----------  ---------  -------  -------")
       expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method      192  Hash")
       expect(text).to include("#{spec_helper_plus_line}  MyClass     my_method        0  String")
       expect(text).to include("#{__FILE__.ljust(MAX_PATH_LENGTH)}         #{@line}  Class       new              0  MyClass")
@@ -279,7 +279,7 @@ describe AllocationStats::AllocationsProxy do
       text = @stats.allocations.to_text(columns: [:sourcefile, :sourceline, :class])
       spec_helper_plus_line = "#{SPEC_HELPER_PATH.ljust(MAX_PATH_LENGTH)}          #{MyClass::MY_METHOD_BODY_LINE}"
 
-      expect(text).to include("                                             sourcefile                                                sourceline   class")
+      expect(text).to include("#{"sourcefile".center(MAX_PATH_LENGTH)}  sourceline   class")
       expect(text).to include("#{"-" * MAX_PATH_LENGTH}  ----------  -------")
       expect(text).to include("#{spec_helper_plus_line}  Hash")
       expect(text).to include("#{spec_helper_plus_line}  String")
@@ -327,7 +327,7 @@ describe AllocationStats::AllocationsProxy do
 
       first = {
         "file" => "<PWD>/spec/spec_helper.rb",
-        "file (raw)" =>  "/usr/local/google/home/srawlins/code/allocation_stats/spec/spec_helper.rb",
+        "file (raw)" =>  "#{Dir.pwd}/spec/spec_helper.rb",
         "line" => 23,
         "class_path" => "MyClass",
         "method_id" => :my_method.to_s,
