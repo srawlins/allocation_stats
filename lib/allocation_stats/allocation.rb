@@ -59,12 +59,12 @@ class AllocationStats
     # @return the source file, aliased.
     def sourcefile_alias
       case
-      when @sourcefile[PWD]
-        @sourcefile.sub(PWD, "<PWD>")
       when @sourcefile[AllocationStats::RUBYLIBDIR]
         @sourcefile.sub(AllocationStats::RUBYLIBDIR, "<RUBYLIBDIR>")
       when @sourcefile[AllocationStats::GEMDIR]
         @sourcefile.sub(/#{AllocationStats::GEMDIR}\/gems\/([^\/]+)\//, '<GEM:\1>/')
+      when @sourcefile[PWD]
+        @sourcefile.sub(PWD, "<PWD>")
       else
         @sourcefile
       end
