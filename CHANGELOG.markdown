@@ -1,3 +1,10 @@
+master
+
+* Added: Build status now tracked with Travis
+* Fixed: Working... better? with new frozen String keys
+* Fixed: alias order changed so that PWD is searched after GEMDIR and
+  RUBYLIBDIR, in case of vendored bundler directory.
+
 v0.1.3
 
 * Fixed: BasicObjects can be tracked; fixes #1
