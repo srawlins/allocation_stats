@@ -357,6 +357,7 @@ consists of:
   ```ruby
   allocations.where(class: Array, size: ->(size) { size > 10 }
   ```
+* `#at_least(n)` selects allocation groups with at least `n` allocations per group.
 * `#bytes`, which has an inconsistent definition, I think... TODO
 
 ### What are faux attributes?

@@ -365,7 +365,16 @@ describe AllocationStats::AllocationsProxy do
       expect(results.values[2].size).to eq(1)
     end
 
-    it "should output to fixed-width text after group_by..sort_by_count correctly" do
+    it "should filter out low count Allocations" do
+      results = @stats.allocations.group_by(:sourcefile, :sourceline, :class).at_least(4).all
+
+      expect(results.size).to eq(1)
+
+      expect(results.keys[0]).to include(@lines[1])
+      expect(results.values[0].size).to eq(4)
+    end
+
+    it "should output to fixed-width text after group_by(...).sort_by_count correctly" do
       text = @stats.allocations(alias_paths: true)
                    .group_by(:sourcefile, :sourceline, :class)
                    .sort_by_count

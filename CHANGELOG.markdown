@@ -1,9 +1,10 @@
-master
+v0.1.4
 
 * Added: Build status now tracked with Travis
 * Fixed: Working... better? with new frozen String keys
 * Fixed: alias order changed so that PWD is searched after GEMDIR and
   RUBYLIBDIR, in case of vendored bundler directory.
+* Added: `at_least` method for the AllocationsProxy, tested and documented
 
 v0.1.3
 

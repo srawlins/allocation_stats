@@ -94,6 +94,18 @@ class AllocationStats
     end
     alias :sort_by_count :sort_by_size
 
+    # Select allocation groups which have at least `count` allocations.
+    #
+    # @param [Fixnum] count the minimum number of Allocations for each group to
+    # be selected.
+    def at_least(count)
+      @mappers << Proc.new do |allocations|
+        allocations.delete_if { |key,value| value.size < count }
+      end
+
+      self
+    end
+
     # Select allocations for which the {Allocation#sourcefile sourcefile}
     # includes `pattern`.
     #
