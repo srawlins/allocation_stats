@@ -40,6 +40,8 @@ class AllocationStats
     end
   end
 
+  # A sorted list of the top "sites", that is, top file/line/class groups,
+  # encountered while tracing RSpec.
   def self.top_sites
     @top_sites
   end
@@ -48,6 +50,14 @@ class AllocationStats
     @top_sites = value
   end
 
+  # Add a Hash of allocation groups (derived from an
+  # `AllocationStats.allocations...group_by(...)`) to the top allocation sites
+  # (file/line/class groups).
+  #
+  # @param [Hash] allocations
+  # @param [String] location the RSpec spec location that was being executed
+  #        when the allocations occurred
+  # @param [Fixnum] limit size of the top sites Array
   def self.add_to_top_sites(allocations, location, limit = 10)
     if allocations.size > limit
       allocations = allocations.to_a[0...limit].to_h  # top 10 or so
@@ -63,6 +73,9 @@ class AllocationStats
     @top_sites = @top_sites.sort_by! { |site| -site[:count] }[0...limit]
   end
 
+  # Textual String representing the sorted list of the top allocation sites.
+  # For each site, this String includes the number of allocations, the class,
+  # the sourcefile, the sourceline, and the location of the RSpec spec.
   def self.top_sites_text
     return "" if @top_sites.empty?
 
