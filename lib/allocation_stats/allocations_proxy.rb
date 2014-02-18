@@ -84,6 +84,7 @@ class AllocationStats
       return self
     end
 
+    # Sort allocation groups by the number of allocations in each group.
     def sort_by_size
       @mappers << Proc.new do |allocations|
         allocations.sort_by { |key, value| -value.size }
@@ -174,12 +175,18 @@ class AllocationStats
       self
     end
 
-    def where(hash)
+    # Select allocations that match `conditions`.
+    #
+    # @param [Hash] conditions pairs of attribute names and values to be matched amongst allocations.
+    #
+    # @example select allocations of String objects:
+    #   allocations.where(class: String)
+    def where(conditions)
       @wheres << Proc.new do |allocations|
-        conditions = hash.inject({}) do |h, pair|
+        conditions = conditions.inject({}) do |memo, pair|
           faux, value = *pair
           getter = attribute_getters([faux]).first
-          h.merge(getter => value)
+          memo.merge(getter => value)
         end
 
         allocations.select do |allocation|

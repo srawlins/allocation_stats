@@ -9,7 +9,8 @@ class AllocationStats
     # a convenience constants
     PWD = Dir.pwd
 
-    # a list of helper methods that Allocation provides on top of the object that was allocated.
+    # a list of helper methods that Allocation provides on top of the object
+    # that was allocated.
     HELPERS = [:class_plus, :gem]
 
     # a list of attributes that Allocation has on itself; inquiries in this
@@ -46,14 +47,17 @@ class AllocationStats
       @method_id  = ObjectSpace.allocation_method_id(object)
     end
 
+    # the sourcefile where the object was allocated
     def file; @sourcefile; end
-    #def line; @sourceline; end
+
     alias :line :sourceline
 
-    # If the source file has recognized paths in it, those portions of the full path will be aliased like so:
+    # If the source file has recognized paths in it, those portions of the full
+    # path will be aliased like so:
     #
     # * the present work directory is aliased to "<PWD>"
-    # * the Ruby lib directory (where the standard library lies) is aliased to "<RUBYLIBDIR>"
+    # * the Ruby lib directory (where the standard library lies) is aliased to
+    #   "<RUBYLIBDIR>"
     # * the Gem directory (where all gems lie) is aliased to "<GEMDIR>"
     #
     # @return the source file, aliased.
@@ -102,10 +106,10 @@ class AllocationStats
       end
     end
 
+    # Override Rubygems' Kernel#gem
+    #
     # @return [String] the name of the Rubygem where this allocation occurred.
     # @return [nil] if this allocation did not occur in a Rubygem.
-    #
-    # Override Rubygems' Kernel#gem
     def gem
       gem_regex = /#{AllocationStats::GEMDIR}#{File::SEPARATOR}
         gems#{File::SEPARATOR}
@@ -136,6 +140,11 @@ class AllocationStats
       as_json.to_json(*a)
     end
 
+    # @return either _the one_ class passed in, the two-to-four classes passed
+    #   in separated by commas, or `nil` if more than four classes were passed
+    #   in.
+    #
+    # @api private
     def element_classes(classes)
       if classes.size == 1
         classes.first

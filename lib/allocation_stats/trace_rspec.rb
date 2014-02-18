@@ -40,12 +40,18 @@ class AllocationStats
     end
   end
 
-  # A sorted list of the top "sites", that is, top file/line/class groups,
-  # encountered while tracing RSpec.
+  # Read the sorted list of the top "sites", that is, top file/line/class
+  # groups, encountered while tracing RSpec.
+  #
+  # @api private
   def self.top_sites
     @top_sites
   end
 
+  # Write to the sorted list of the top "sites", that is, top file/line/class
+  # groups, encountered while tracing RSpec.
+  #
+  # @api private
   def self.top_sites=(value)
     @top_sites = value
   end
@@ -76,6 +82,8 @@ class AllocationStats
   # Textual String representing the sorted list of the top allocation sites.
   # For each site, this String includes the number of allocations, the class,
   # the sourcefile, the sourceline, and the location of the RSpec spec.
+  #
+  # @api private
   def self.top_sites_text
     return "" if @top_sites.empty?
 
