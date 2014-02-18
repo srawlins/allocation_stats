@@ -5,6 +5,8 @@ v0.1.4
 * Fixed: alias order changed so that PWD is searched after GEMDIR and
   RUBYLIBDIR, in case of vendored bundler directory.
 * Added: `at_least` method for the AllocationsProxy, tested and documented
+* Added: `AllocationStats.trace_rspec` to trace an RSpec run, tested and
+  moderately documented
 
 v0.1.3
 
