@@ -247,7 +247,7 @@ describe AllocationStats::AllocationsProxy do
     files.should_not include("<GEMDIR>/gems/yajl-ruby-1.1.0/lib/yajl.rb")
   end
 
-  it "should be able to filter to just one path" do
+  it "should be able to filter to just one class" do
     stats = AllocationStats.trace do
       j = Yajl.dump(["one string", "two string"]) # lots of objects from Rbconfig::CONFIG["rubylibdir"]
     end

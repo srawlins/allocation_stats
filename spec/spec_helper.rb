@@ -36,3 +36,10 @@ class MyClass
     (@c.size + 1).times { @c << "string" }
   end
 end
+
+class NullObject
+  private
+  def method_missing(method, *args, &block)
+    # ignore
+  end
+end

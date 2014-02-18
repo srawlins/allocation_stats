@@ -5,6 +5,7 @@ require "objspace"
 require_relative "allocation_stats/core_ext/basic_object"
 require_relative "allocation_stats/allocation"
 require_relative "allocation_stats/allocations_proxy"
+require_relative "allocation_stats/trace_rspec"
 
 require "rubygems"
 
