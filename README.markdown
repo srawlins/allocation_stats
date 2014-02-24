@@ -5,15 +5,16 @@ AllocationStats [![Build Status](https://travis-ci.org/srawlins/allocation_stats
   * [Install](#install)
   * [Tabular output examples](#tabular-output-examples)
   * [More on `trace_object_allocations()`](#more-on-trace_object_allocations)
-  * [Example from the specs](#example-from-the-specs)
-  * [A little slower](#a-little-slower)
-  * [Psych example](#psych-example)
 * [The API](#the-api)
   * [`AllocationStats` API](#allocationstats-api)
     * [Burn one](#burn-one)
   * [`AllocationsProxy` API](#allocationsproxy-api)
     * [What are faux attributes?](#what-are-faux-attributes)
     * [What is `class_plus`?](#what-is-class_plus)
+* [Examples](#examples)
+  * [Example from the specs](#example-from-the-specs)
+  * [A little slower](#a-little-slower)
+  * [Psych example](#psych-example)
 * [References](#references)
 
 Introduction
@@ -128,6 +129,92 @@ $ ruby ./examples/trace_object_allocations.rb
 allocations.rb
 4
 ```
+
+To see some detailed examples, review the [Examples](#examples) section.
+
+The API
+-------
+
+### `AllocationStats` API
+
+The tracing of allocations can be kicked off in a few different ways, to provide flexibility:
+
+####  Block-style
+
+Just pass a block to `AllocationStats.trace`:
+
+    stats = AllocationStats.trace do
+      # code to trace
+    end
+
+Or initialize an `AllocationStats`, then call `#trace` with a block:
+
+    stats = AllocationStats.new
+    stats.trace do
+      # code to trace
+    end
+
+#### Inline
+
+Wrap lines of code to trace with calls to `#trace` (or `#start`) and `#stop`:
+
+    stats = AllocationStats.new
+    stats.trace  # also stats.start
+    # code to trace
+    stats.stop
+
+#### Burn One
+
+If you find a lot of allocations in `kernel_require.rb` or a lot of allocations
+of `RubyVM::InstructuinSequences`, you can "burn" one or more iterations.
+Instantiate your `AllocationStats` instance with the `burn` keyword, and trace
+your code block-style. For example: `AllocationStats.new(burn: 3).trace{ ... }`
+will first call the block 3 times, without tracing allocations, before calling
+the block a 4th time, tracing allocations.
+
+### `AllocationsProxy` API
+
+Here are the methods available on the `AllocationStats::AllocationsProxy`
+object that is returned by `AllocationStats#allocations`:
+
+* `#group_by`
+* `#from` takes one String argument, which will matched against the
+  allocation filename.
+* `#not_from` is the opposite of `#from`.
+* `#from_pwd` will filter the allocations down to those originating from `pwd`
+  (e.g. allocations originating from "my project")
+* `#where` accepts a hash of faux attribute keys. For example,
+
+  ```ruby
+  allocations.where(class: String)
+  ```
+
+  It does not yet accept lambdas as values, which _would_ enable
+  ActiveRecord-4-like calls, like
+
+  ```ruby
+  allocations.where(class: Array, size: ->(size) { size > 10 }
+  ```
+* `#at_least(n)` selects allocation groups with at least `n` allocations per group.
+* `#bytes`, which has an inconsistent definition, I think... TODO
+
+### What are faux attributes?
+
+Valid values for `#group_by` and `#where` include:
+* instance variables on each `Allocation`. These include `:sourcefile`,
+  `:sourceline`, etc.
+* methods available on the objects that were allocated. These include things
+  like `:class`, or even `:size` if you know you only have objects that respond
+  to `:size`.
+* Allocation helper methods that return something special about the allocated
+  object. Right now this just includes `:class_plus`.
+
+I'm calling these things that you can group by or filter by, "faux attributes."
+
+### What is `class_plus`?
+
+Examples
+--------
 
 ### Example from the specs
 
@@ -338,84 +425,6 @@ puts stats.allocations(alias_paths: true).group_by(:sourcefile, :class).to_text
 <RUBYLIBDIR>/psych/scalar_scanner.rb      String                                    5
 <RUBYLIBDIR>/psych/scalar_scanner.rb      MatchData                                 2
 ```
-
-The API
--------
-
-### `AllocationStats` API
-
-The tracing of allocations can be kicked off in a few different ways, to provide flexibility:
-
-* Block-style, calling `AllocationStats.trace`:
-    ```ruby
-    stats = AllocationStats.trace do
-      # code to trace
-    end
-    ```
-* Block-style, initializing an `AllocationStats`, then calling `#new`:
-    ```ruby
-    stats = AllocationStats.new
-    stats.trace do
-      # code to trace
-    end
-    ```
-* Before and after traced code:
-    ```ruby
-    stats = AllocationStats.new
-    stats.trace  # also stats.start
-    # code to trace
-    stats.stop
-    ```
-
-#### Burn One
-
-If you find a lot of allocations in `kernel_require.rb` or a lot of allocations
-of `RubyVM::InstructuinSequences`, you can "burn" one or more iterations.
-Instantiate your `AllocationStats` instance with the `burn` keyword, and trace
-your code block-style. For example: `AllocationStats.new(burn: 3).trace{ ... }`
-will first call the block 3 times, without tracing allocations, before calling
-the block a 4th time, tracing allocations.
-
-### `AllocationsProxy` API
-
-Here are the methods available on the `AllocationStats::AllocationsProxy`
-object that is returned by `AllocationStats#allocations`:
-
-* `#group_by`
-* `#from` takes one String argument, which will matched against the
-  allocation filename.
-* `#not_from` is the opposite of `#from`.
-* `#from_pwd` will filter the allocations down to those originating from `pwd`
-  (e.g. allocations originating from "my project")
-* `#where` accepts a hash of faux attribute keys. For example,
-
-  ```ruby
-  allocations.where(class: String)
-  ```
-
-  It does not yet accept lambdas as values, which _would_ enable
-  ActiveRecord-4-like calls, like
-
-  ```ruby
-  allocations.where(class: Array, size: ->(size) { size > 10 }
-  ```
-* `#at_least(n)` selects allocation groups with at least `n` allocations per group.
-* `#bytes`, which has an inconsistent definition, I think... TODO
-
-### What are faux attributes?
-
-Valid values for `#group_by` and `#where` include:
-* instance variables on each `Allocation`. These include `:sourcefile`,
-  `:sourceline`, etc.
-* methods available on the objects that were allocated. These include things
-  like `:class`, or even `:size` if you know you only have objects that respond
-  to `:size`.
-* Allocation helper methods that return something special about the allocated
-  object. Right now this just includes `:class_plus`.
-
-I'm calling these things that you can group by or filter by, "faux attributes."
-
-### What is `class_plus`?
 
 References
 ----------
