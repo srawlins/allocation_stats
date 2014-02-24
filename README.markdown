@@ -2,9 +2,17 @@ AllocationStats [![Build Status](https://travis-ci.org/srawlins/allocation_stats
 ===============
 
 * [Introduction](#introduction)
-* * [Install](#install)
-* * [Tabular output examples](#tabular-output-examples)
-* * [more on `trace_object_allocations()`](#more-on-trace-object-allocations)
+  * [Install](#install)
+  * [Tabular output examples](#tabular-output-examples)
+  * [More on `trace_object_allocations()`](#more-on-trace_object_allocations)
+  * [Examples from the specs](#examples-from-the-specs)
+  * [A little slower](#a-little-slower)
+  * [Psych example](#psych-example)
+  * [Burn one](#burn-one)
+* [The API](#the-api)
+  * [What are faux attributes?](#what-are-faux-attributes)
+  * [What is `class_plus`?](#what-is-class-plus)
+* [References](#references)
 
 Introduction
 ------------
