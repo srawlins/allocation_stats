@@ -1,6 +1,11 @@
 AllocationStats [![Build Status](https://travis-ci.org/srawlins/allocation_stats.png?branch=master)](https://travis-ci.org/srawlins/allocation_stats)
 ===============
 
+* [Introduction](#introduction)
+* * [Install](#install)
+* * [Tabular output examples](#tabular-output-examples)
+* * [more on `trace_object_allocations()`](#more-on-trace-object-allocations)
+
 Introduction
 ------------
 
@@ -28,7 +33,7 @@ or run the following command:
 gem install allocation_stats
 ```
 
-### Tabular Output examples
+### Tabular output examples
 
 It is very easy to get some simple statistics out of AllocationStats.
 Wrap some code with `AllocationStats.trace` and print out a listing of all of the
