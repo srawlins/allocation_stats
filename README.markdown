@@ -5,13 +5,15 @@ AllocationStats [![Build Status](https://travis-ci.org/srawlins/allocation_stats
   * [Install](#install)
   * [Tabular output examples](#tabular-output-examples)
   * [More on `trace_object_allocations()`](#more-on-trace_object_allocations)
-  * [Examples from the specs](#examples-from-the-specs)
+  * [Example from the specs](#example-from-the-specs)
   * [A little slower](#a-little-slower)
   * [Psych example](#psych-example)
-  * [Burn one](#burn-one)
 * [The API](#the-api)
-  * [What are faux attributes?](#what-are-faux-attributes)
-  * [What is `class_plus`?](#what-is-class-plus)
+  * [`AllocationStats` API](#allocationstats-api)
+    * [Burn one](#burn-one)
+  * [`AllocationsProxy` API](#allocationsproxy-api)
+    * [What are faux attributes?](#what-are-faux-attributes)
+    * [What is `class_plus`?](#what-is-class_plus)
 * [References](#references)
 
 Introduction
@@ -337,20 +339,47 @@ puts stats.allocations(alias_paths: true).group_by(:sourcefile, :class).to_text
 <RUBYLIBDIR>/psych/scalar_scanner.rb      MatchData                                 2
 ```
 
-### Burn One
-
-If you find a lot of allocations in `kernel_require.rb` or a lot of allocations
-of `RubyVM::InstructuinSequences`, you can "burn" one or more calls to your
-block with the `burn` keyword. For example:
-`AllocationStats.new(burn: 3).trace{ ... }` will first call the block 3 times,
-without tracing allocations, before calling the block a 4th time, tracing
-allocations.
-
 The API
 -------
 
-So what methods are available on that AllocationsProxy thing? So far, the API
-consists of:
+### `AllocationStats` API
+
+The tracing of allocations can be kicked off in a few different ways, to provide flexibility:
+
+* Block-style, calling `AllocationStats.trace`:
+    ```ruby
+    stats = AllocationStats.trace do
+      # code to trace
+    end
+    ```
+* Block-style, initializing an `AllocationStats`, then calling `#new`:
+    ```ruby
+    stats = AllocationStats.new
+    stats.trace do
+      # code to trace
+    end
+    ```
+* Before and after traced code:
+    ```ruby
+    stats = AllocationStats.new
+    stats.trace  # also stats.start
+    # code to trace
+    stats.stop
+    ```
+
+#### Burn One
+
+If you find a lot of allocations in `kernel_require.rb` or a lot of allocations
+of `RubyVM::InstructuinSequences`, you can "burn" one or more iterations.
+Instantiate your `AllocationStats` instance with the `burn` keyword, and trace
+your code block-style. For example: `AllocationStats.new(burn: 3).trace{ ... }`
+will first call the block 3 times, without tracing allocations, before calling
+the block a 4th time, tracing allocations.
+
+### `AllocationsProxy` API
+
+Here are the methods available on the `AllocationStats::AllocationsProxy`
+object that is returned by `AllocationStats#allocations`:
 
 * `#group_by`
 * `#from` takes one String argument, which will matched against the
