@@ -167,7 +167,7 @@ describe AllocationStats::AllocationsProxy do
     results = stats.allocations.from_pwd.group_by(:class).all
     results.keys.size.should == 3
     results[[String]].size.should == 6
-    results[[Array]].size.should == 3  # one for empty *args in YAML.dump
+    results[[Array]].size.should == 2
     results[[Range]].size.should == 1
   end
 
