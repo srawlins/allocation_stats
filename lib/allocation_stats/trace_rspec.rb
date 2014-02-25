@@ -10,37 +10,39 @@ class AllocationStats
     end
 
     ::RSpec.configure do |config|
-      config.around do |example|
-        # TODO s/false/some config option/
-        if true  # wrap loosely
-          stats = AllocationStats.trace { example.run }
-        else      # wrap tightly
-          # Super hacky, but presumably more correct results?
-          stats = AllocationStats.new
-          example_block = @example.instance_variable_get(:@example_block).clone
-
-          @example.instance_variable_set(
-            :@example_block,
-            Proc.new do
-              stats.trace { example_block.call }
-            end
-          )
-
-          example.run
-        end
-
-        allocations = stats.allocations(alias_paths: true).
-          not_from("rspec-core").not_from("rspec-expectations").not_from("rspec-mocks").
-          group_by(:sourcefile, :sourceline, :class).
-          sort_by_count
-
-        AllocationStats.add_to_top_sites(allocations.all, @example.location)
-      end
+      config.around(&TRACE_RSPEC_HOOK)
     end
 
     at_exit do
       puts AllocationStats.top_sites_text
     end
+  end
+
+  TRACE_RSPEC_HOOK = proc do |example|
+     # TODO s/false/some config option/
+     if true  # wrap loosely
+       stats = AllocationStats.new(burn: 1).trace { example.run }
+     else      # wrap tightly
+       # Super hacky, but presumably more correct results?
+       stats = AllocationStats.new(burn: 1)
+       example_block = @example.instance_variable_get(:@example_block).clone
+
+       @example.instance_variable_set(
+         :@example_block,
+         Proc.new do
+           stats.trace { example_block.call }
+         end
+       )
+
+       example.run
+     end
+
+     allocations = stats.allocations(alias_paths: true).
+       not_from("rspec-core").not_from("rspec-expectations").not_from("rspec-mocks").
+       group_by(:sourcefile, :sourceline, :class).
+       sort_by_count
+
+     AllocationStats.add_to_top_sites(allocations.all, @example.location)
   end
 
   # Read the sorted list of the top "sites", that is, top file/line/class
@@ -76,10 +78,23 @@ class AllocationStats
     # * oly insert when an allocation won't be immediately dropped
     # * insert into correct position and pop rather than sort and slice
     allocations.each do |k,v|
-      @top_sites << { key: k, location: location, count: v.size }
+      next if k[0] =~ /spec_helper\.rb$/
+
+      if site = @top_sites.detect { |s| s[:key] == k }
+        if lower_idx = site[:counts].index { |loc, count| count < v.size }
+          site[:counts].insert(lower_idx, [location, v.size])
+        else
+          site[:counts] << [location, v.size]
+        end
+        site[:counts].pop if site[:counts].size > 3
+      else
+        @top_sites << { key: k, counts: [[location, v.size]] }
+      end
     end
 
-    @top_sites = @top_sites.sort_by! { |site| -site[:count] }[0...limit]
+    @top_sites = @top_sites.sort_by! { |site|
+      -site[:counts].map(&:last).max
+    }[0...limit]
   end
 
   # Textual String representing the sorted list of the top allocation sites.
@@ -92,8 +107,10 @@ class AllocationStats
 
     result = "Top #{@top_sites.size} allocation sites:\n"
     @top_sites.each do |site|
-      result << "  %s allocations of %s at %s:%d\n" % [site[:count], site[:key][2], site[:key][0], site[:key][1]]
-      result << "    during %s\n" % [site[:location]]
+      result << "  %s allocations at %s:%d\n" % [site[:key][2], site[:key][0], site[:key][1]]
+      site[:counts].each do |location, count|
+        result << "    %3d allocations during %s\n" % [count, location]
+      end
     end
 
     result
