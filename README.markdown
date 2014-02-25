@@ -11,6 +11,9 @@ AllocationStats [![Build Status](https://travis-ci.org/srawlins/allocation_stats
   * [`AllocationsProxy` API](#allocationsproxy-api)
     * [What are faux attributes?](#what-are-faux-attributes)
     * [What is `class_plus`?](#what-is-class_plus)
+* [Gotchas](#gotchas)
+  * [Allocations in C](#allocations-in-c)
+  * [`autoload`](#autoload)
 * [Examples](#examples)
   * [Example from the specs](#example-from-the-specs)
   * [A little slower](#a-little-slower)
@@ -143,25 +146,31 @@ The tracing of allocations can be kicked off in a few different ways, to provide
 
 Just pass a block to `AllocationStats.trace`:
 
-    stats = AllocationStats.trace do
-      # code to trace
-    end
+```ruby
+stats = AllocationStats.trace do
+  # code to trace
+end
+```
 
 Or initialize an `AllocationStats`, then call `#trace` with a block:
 
-    stats = AllocationStats.new
-    stats.trace do
-      # code to trace
-    end
+```ruby
+stats = AllocationStats.new
+stats.trace do
+  # code to trace
+end
+```
 
 #### Inline
 
 Wrap lines of code to trace with calls to `#trace` (or `#start`) and `#stop`:
 
-    stats = AllocationStats.new
-    stats.trace  # also stats.start
-    # code to trace
-    stats.stop
+```ruby
+stats = AllocationStats.new
+stats.trace  # also stats.start
+# code to trace
+stats.stop
+```
 
 #### Burn One
 
@@ -198,7 +207,7 @@ object that is returned by `AllocationStats#allocations`:
 * `#at_least(n)` selects allocation groups with at least `n` allocations per group.
 * `#bytes`, which has an inconsistent definition, I think... TODO
 
-### What are faux attributes?
+#### What are faux attributes?
 
 Valid values for `#group_by` and `#where` include:
 * instance variables on each `Allocation`. These include `:sourcefile`,
@@ -211,7 +220,100 @@ Valid values for `#group_by` and `#where` include:
 
 I'm calling these things that you can group by or filter by, "faux attributes."
 
-### What is `class_plus`?
+#### What is `class_plus`?
+
+### Tracing RSpec
+
+You can trace an RSpec test suite by including this at the top of your
+`spec_helper.rb`:
+
+```ruby
+require 'allocation_stats'
+AllocationStats.trace_rspec
+```
+
+This will put hooks around your RSpec tests, tracing each RSpec test
+individually. When RSpec exits, the top sourcefile/sourceline/class
+combinations will be printed out.
+
+Tracing RSpec gives maintainers of existing libraries a great place to start to
+search for innefficiencies in their project. You can trace an RSpec run of your
+whole test suite, or a subset, and if any one spec allocates hundreds of
+objects from the same line, then it might be something worth investigating.
+
+Here's the example from [`examples/trace_specs/`](examples/trace_specs):
+
+```
+ rspec strings_spec.rb
+..
+
+Top 2 slowest examples (0.08615 seconds, 100.0% of total time):
+  Array of Strings allocates Strings and Arrays
+    0.0451 seconds ./strings_spec.rb:8
+  Array of Strings allocates more Strings
+    0.04105 seconds ./strings_spec.rb:12
+
+Finished in 0.08669 seconds
+2 examples, 0 failures
+
+Randomized with seed 56224
+
+Top 7 allocation sites:
+  5 allocations of String at <PWD>/strings.rb:2
+    during ./strings_spec.rb:8
+  2 allocations of Array at <PWD>/strings_spec.rb:9
+    during ./strings_spec.rb:8
+  2 allocations of Array at <PWD>/strings_spec.rb:13
+    during ./strings_spec.rb:12
+  1 allocations of Array at <PWD>/strings.rb:2
+    during ./strings_spec.rb:8
+  1 allocations of String at <PWD>/strings.rb:6
+    during ./strings_spec.rb:8
+  1 allocations of String at <PWD>/strings.rb:14
+    during ./strings_spec.rb:12
+  1 allocations of String at <PWD>/strings.rb:10
+    during ./strings_spec.rb:12
+```
+
+We are informed that during the spec at `strings_spec.rb:8`, there were 5x
+Strings allocated at `strings.rb:2`.
+
+`#trace_rspec` always burns each test run once, mostly to prevent `#autoload`
+from appearing in the allocations.
+
+Gotchas
+-------
+
+### Allocations in C
+
+If allocations occur in C code (such as a C extension), their allocation site
+will be somewhat obfuscated. The allocation will still be logged, but the
+sourcefile and sourceline will register as the deepest Ruby file that _called_
+a C function that maybe called other C functions that at some point allocated
+an object. This brings us to the next gotcha:
+
+### `autoload`
+
+`Kernel#autoload` is tricky! Autoloading can hide allocations (during the
+ensuing `require`) in a simple constant reference. For example, in the mail
+gem, tracing object allocations during `rspec spec/mail/body_spec.rb:339` makes
+it look like the following line allocates 219 Strings:
+
+```ruby
+#  lib/mail/configuration.rb
+
+28    def lookup_delivery_method(method)
+29      case method.is_a?(String) ? method.to_sym : method
+30      when nil
+31        Mail::SMTP  # <-- 219 Strings alloctated here?
+```
+
+To fight this, either [don't use
+autoload](https://www.ruby-forum.com/topic/3036681), which can be eased into
+with a fancy mechanism like mail's
+[#eager_autoload](https://github.com/mikel/mail/blob/master/lib/mail.rb), or
+rely on the `burn` mechanism. `AllocationStats.trace_rspec` always burns each
+test run once.
 
 Examples
 --------
@@ -314,7 +416,7 @@ allocation information, accessible via `#allocations`. Let's look at the next
 line to see how we can pull useful information out:
 
 ```ruby
-  results = stats.allocations.group_by(:@sourcefile, :class).to_a
+results = stats.allocations.group_by(:@sourcefile, :class).to_a
 ```
 
 If you are used to chaining ActiveRecord relations, some of this might look

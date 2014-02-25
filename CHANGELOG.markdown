@@ -1,3 +1,10 @@
+v0.1.x
+
+* Added: README is much more complete now.
+* Added: `AllocationStats.trace_rspec` is documented better.
+* Added: `AllocationStats.reace_rspec` now always burns once to prevent
+  `#autoload` from allocating where unexpected.
+
 v0.1.4
 
 * Added: Build status now tracked with Travis
