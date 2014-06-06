@@ -237,7 +237,7 @@ individually. When RSpec exits, the top sourcefile/sourceline/class
 combinations will be printed out.
 
 Tracing RSpec gives maintainers of existing libraries a great place to start to
-search for innefficiencies in their project. You can trace an RSpec run of your
+search for inefficiencies in their project. You can trace an RSpec run of your
 whole test suite, or a subset, and if any one spec allocates hundreds of
 objects from the same line, then it might be something worth investigating.
 
