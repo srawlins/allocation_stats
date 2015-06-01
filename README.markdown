@@ -129,7 +129,7 @@ ObjectSpace.trace_object_allocations do
   puts ObjectSpace.allocation_sourceline(a)
 end
 $ ruby ./examples/trace_object_allocations.rb
-allocations.rb
+./examples/trace_object_allocations.rb
 4
 ```
 
