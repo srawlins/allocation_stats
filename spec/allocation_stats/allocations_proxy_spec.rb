@@ -176,15 +176,39 @@ describe AllocationStats::AllocationsProxy do
   end
 
   it "passes itself to Yajl::Encoder.encode correctly" do
-    pending "I don't know why this isn't passing, but it's not worth worrying about now"
     stats = AllocationStats.trace do
       new_hash = {0 => "foo", 1 => "bar"}
     end
 
-    expect(Yajl::Encoder.encode(stats.allocations.to_a)).to eq \
-      "[{\"memsize\":192,\"file\":\"#{__FILE__}\",\"line\":170,\"class_plus\":\"Hash\"}," +
-        "{\"memsize\":0,\"file\":\"#{__FILE__}\",\"line\":170,\"class_plus\":\"String\"}," +
-        "{\"memsize\":0,\"file\":\"#{__FILE__}\",\"line\":170,\"class_plus\":\"String\"}]"
+    json = Yajl::Encoder.encode(stats.allocations.to_a)
+    array = Yajl::Parser.new.parse(json)
+
+    expect(array).to eq [
+      {"memsize" => 192,
+       "class_path" => nil,
+       "method_id" => nil,
+       "file" => __FILE__.sub(Dir.pwd, "<PWD>"),
+       "file (raw)" => __FILE__,
+       "line" => __LINE__ - 12,
+       "class" => "Hash",
+       "class_plus" => "Hash"},
+      {"memsize" => 0,
+       "class_path" => nil,
+       "method_id" => nil,
+       "file" => __FILE__.sub(Dir.pwd, "<PWD>"),
+       "file (raw)" => __FILE__,
+       "line" => __LINE__ - 20,
+       "class" => "String",
+       "class_plus" => "String"},
+      {"memsize" => 0,
+       "class_path" => nil,
+       "method_id" => nil,
+       "file" => __FILE__.sub(Dir.pwd, "<PWD>"),
+       "file (raw)" => __FILE__,
+       "line" => __LINE__ - 28,
+       "class" => "String",
+       "class_plus" => "String"}
+    ]
   end
 
   it "shortens paths of stuff in RUBYLIBDIR" do
