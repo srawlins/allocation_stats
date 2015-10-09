@@ -108,7 +108,9 @@ describe AllocationStats::AllocationsProxy do
     end
 
     results = stats.allocations.group_by(:sourcefile, :class_plus).all
-    skip "Not written yet"
+    expect(results.keys.size).to eq 2
+    expect(results.keys).to include([__FILE__, "Array<Fixnum>"])
+    expect(results.keys).to include([__FILE__, "Array<Array>"])
   end
 
   it "tracks new objects by class_path, method_id and class" do
