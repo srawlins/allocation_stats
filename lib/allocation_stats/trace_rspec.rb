@@ -19,30 +19,14 @@ class AllocationStats
   end
 
   TRACE_RSPEC_HOOK = proc do |example|
-     # TODO s/false/some config option/
-     if true  # wrap loosely
-       stats = AllocationStats.new(burn: 1).trace { example.run }
-     else      # wrap tightly
-       # Super hacky, but presumably more correct results?
-       stats = AllocationStats.new(burn: 1)
-       example_block = @example.instance_variable_get(:@example_block).clone
-
-       @example.instance_variable_set(
-         :@example_block,
-         Proc.new do
-           stats.trace { example_block.call }
-         end
-       )
-
-       example.run
-     end
+     stats = AllocationStats.new(burn: 1).trace { example.run }
 
      allocations = stats.allocations(alias_paths: true).
        not_from("rspec-core").not_from("rspec-expectations").not_from("rspec-mocks").
-       group_by(:sourcefile, :sourceline, :class).
+       not_from("lib/allocation_stats").group_by(:sourcefile, :sourceline, :class).
        sort_by_count
 
-     AllocationStats.add_to_top_sites(allocations.all, @example.location)
+     AllocationStats.add_to_top_sites(allocations.all, example.location)
   end
 
   # Read the sorted list of the top "sites", that is, top file/line/class

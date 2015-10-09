@@ -1,11 +1,7 @@
 # Copyright 2014 Google Inc. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0, found in the LICENSE file.
 
-require_relative File.join("spec_helper")
-
-RSpec.configure do |config|
-  config.around {|example| Sandboxing.sandboxed { example.run }}
-end
+require_relative "spec_helper"
 
 describe "AllocationStats.trace_rspec" do
   before do
@@ -82,8 +78,6 @@ describe "AllocationStats.trace_rspec" do
       expect(output).to include("Top 2 allocation sites:\n")
       expect(output).to include("  String allocations at <PWD>/spec/trace_rspec_spec.rb:#{line+1}\n")
       expect(output).to include("    4 allocations during ./spec/trace_rspec_spec.rb:#{line}\n")
-      expect(output).to include("  Array allocations at <PWD>/spec/trace_rspec_spec.rb:#{line+1}\n")
-      expect(output).to include("    3 allocations during ./spec/trace_rspec_spec.rb:#{line}\n")
     end
   end
 end

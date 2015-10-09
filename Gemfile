@@ -9,7 +9,7 @@ end
 
 group :test do
   gem "rake"
-  gem "rspec"
+  gem "rspec", "~> 3.3"
   gem "simplecov", require: false
   gem "pry"
 
