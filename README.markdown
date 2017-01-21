@@ -202,7 +202,7 @@ object that is returned by `AllocationStats#allocations`:
   ActiveRecord-4-like calls, like
 
   ```ruby
-  allocations.where(class: Array, size: ->(size) { size > 10 }
+  allocations.where(class: Array, size: ->(size) { size > 10 })
   ```
 * `#at_least(n)` selects allocation groups with at least `n` allocations per group.
 * `#bytes`, which has an inconsistent definition, I think... TODO
