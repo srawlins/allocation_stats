@@ -13,5 +13,5 @@ group :test do
   gem "simplecov", require: false
   gem "pry"
 
-  gem "yajl-ruby", "= 1.1.0"
+  gem "yajl-ruby", "1.3.1"
 end
